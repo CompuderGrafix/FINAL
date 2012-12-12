@@ -7,15 +7,25 @@
 #include "include/Angel.h"
 #include "SpelchkCommon/Camera.h"
 #include "SpelchkCommon/Model.h"
+#include "SpelchkCommon/SceneGraph.h"
 
 typedef Angel::vec4 color4;
 typedef Angel::vec4 point4;
 
+Model *floorModel;
+
 Model *model;
 Model *model2;
 
-GLuint modelView;  // model-view matrix uniform shader variable location
+SceneGraph *sceneGraph1;
+SceneGraph *sceneGraph2;
+SceneGraph *sceneGraph3;
+SceneGraph *sceneGraph4;
+SceneGraph *sceneGraph5;
+
 GLuint projection; // projection matrix uniform shader variable location
+GLuint modelView;  // model-view matrix uniform shader variable location
+GLuint modelOrientation;  // model-orientation matrix uniform shader variable location
 
 int screenHeight, screenWidth;
 
@@ -56,10 +66,6 @@ void keyboard(unsigned char key, int x, int y) {
       break;
     case ' ': // reset values to their defaults
       camera.reset();
-
-      if (debug)
-        printf("x = %f, y = %f, z = %f\n", camera.getTranslationVector().x, camera.getTranslationVector().y, camera.getTranslationVector().z);
-
       break;
   }
 }
@@ -118,24 +124,41 @@ void motion(int x, int y) {
 
     camera.rotateCamera(xAngle, yAngle, 0.0);
 
-    if (debug)
-      printf("yAngle = %f, xAngle = %f\n", yAngle, xAngle);
-
   } else if (rightDown) {
     temp = (y - mouseDownY);
     mouseDownY = y;
     depth = (temp * translationFactor / screenHeight);
 
     camera.moveCamera(0.0, 0.0, depth);
-
-    if (debug)
-      printf("x = %f, y = %f, z = %f, yAngle = %f, xAngle = %f\n", camera.getTranslationVector().x, camera.getTranslationVector().y, camera.getTranslationVector().z, yAngle, xAngle);
   }
+}
+
+void loadTextures() {
+  GLuint textures[2];
+  glGenTextures(2, textures);
+
+  int width, height;
+  unsigned char* image;
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, textures[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  image = SOIL_load_image("OpenGL_Tutorial_Texture.jpg", &width, &height, 0, SOIL_LOAD_RGB );
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image );
+  SOIL_free_image_data(image);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, textures[1]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  image = SOIL_load_image("OpenGL_Tutorial_Texture2.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+  SOIL_free_image_data(image);
 }
 
 void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuint uTexture, GLuint uUseTexture, GLuint uMaterialAmbient, GLuint uMaterialDiffuse, GLuint uMaterialSpecular, GLuint uMaterialShininess) {
 
-  GLfloat cube_texcoords[2*6] = {
+  loadTextures();
+  GLfloat squareTexureCoords[2*6] = {
     0.0, 0.0,
     0.0, 1.0,
     1.0, 1.0,
@@ -144,85 +167,121 @@ void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuin
     1.0, 0.0,
   };
 
-  vec4 materialAmbient(0.0, 0.0, 0.0, 1.0);
-  vec4 materialDiffuse(0.8, 0.8, 0.8, 1.0);
-  vec4 materialSpecular(0.2, 0.2, 0.2, 1.0);
-  float materialShininess = 5.0;
-
   std::vector<GLfloat> textureCoords;
   for(int i = 0; i < 6; i++) {
     for(int j = 0; j < 12; j++) {
-      textureCoords.push_back(cube_texcoords[j]);
+      textureCoords.push_back(squareTexureCoords[j]);
     }
   }
 
-  GLuint texture_id = SOIL_load_OGL_texture(
-      "OpenGL_Tutorial_Texture.jpg",
-      SOIL_LOAD_AUTO,
-      SOIL_CREATE_NEW_ID,
-      SOIL_FLAG_INVERT_Y);
+  vec4 materialAmbient(0.0, 0.0, 0.0, 1.0);
+  vec4 materialDiffuse(0.0, 0.8, 0.0, 1.0);
+  vec4 materialSpecular(0.2, 0.2, 0.2, 1.0);
+  float materialShininess = 5.0;
 
-  glBindTexture(GL_TEXTURE_2D, texture_id);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, // target
-         0,  // level, 0 = base, no minimap,
-         GL_RGB, // internalformat
-         256,  // width
-         256,  // height
-         0,  // border, always 0 in OpenGL ES
-         GL_RGB,  // format
-         GL_UNSIGNED_BYTE, // type
-         0);
+  vec4 floorPoints[4] = {
+      vec4(-10.0, 0.0, -10.0, 1.0),
+      vec4(-10.0, 0.0, 10.0, 1.0),
+      vec4(10.0, 0.0, 10.0, 1.0),
+      vec4(10.0, 0.0, -10.0, 1.0)
+  };
+  floorModel = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  floorModel->addPoint(floorPoints[0]);
+  floorModel->addPoint(floorPoints[1]);
+  floorModel->addPoint(floorPoints[2]);
+  floorModel->addPoint(floorPoints[0]);
+  floorModel->addPoint(floorPoints[2]);
+  floorModel->addPoint(floorPoints[3]);
+  floorModel->calculateNormals();
+  floorModel->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
+  floorModel->upload();
 
-  printf("texture_id %d\n", texture_id);
+  materialAmbient = vec4(0.0, 0.0, 0.0, 1.0);
+  materialDiffuse = vec4(0.8, 0.8, 0.8, 1.0);
+  materialSpecular = vec4(0.2, 0.2, 0.2, 1.0);
+  materialShininess = 5.0;
+
   model = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
-  model->load_obj("suzanne.obj");
-  //cube(model);
+  //model->load_obj("suzanne.obj");
+  cube(model);
   model->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
-  //model->setTexture(texture_id, textureCoords);
+  model->setTexture(0, textureCoords);
   model->upload();
 
-  texture_id = SOIL_load_OGL_texture(
-      "OpenGL_Tutorial_Texture2.jpg",
-      SOIL_LOAD_AUTO,
-      SOIL_CREATE_NEW_ID,
-      SOIL_FLAG_INVERT_Y);
-
-  /*
-  glBindTexture(GL_TEXTURE_2D, texture_id);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, // target
-         0,  // level, 0 = base, no minimap,
-         GL_RGB, // internalformat
-         256,  // width
-         256,  // height
-         0,  // border, always 0 in OpenGL ES
-         GL_RGB,  // format
-         GL_UNSIGNED_BYTE, // type
-         0);
-         */
-  printf("texture_id %d\n", texture_id);
-  //model2 = new Model(vPosition, vNormal, vColor);
+  model2 = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  cube(model2);
   //tetrahedron(model2, 7);
-  //model2->upload();
+  model2->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
+  model2->setTexture(1, textureCoords);
+  model2->upload();
+
+  sceneGraph1 = new SceneGraph(model, Translate(0.0, 0.0, 0.0), Translate(0.0, 0.5, 0.0));
+  sceneGraph2 = new SceneGraph(model2, Translate(0.5, 0.5, 0.0), Translate(0.5, 0.5, 0.0));
+  sceneGraph3 = new SceneGraph(model2, Translate(-0.5, 0.5, 0.0), Translate(-0.5, 0.5, 0.0));
+
+  sceneGraph4 = new SceneGraph(model, Translate(0.5, 0.5, 0.0), Translate(-0.5, 0.5, 0.0));
+  sceneGraph5 = new SceneGraph(model, Translate(-0.5, 0.5, 0.0), Translate(0.5, 0.5, 0.0));
+
+  sceneGraph1->addSceneGraph(sceneGraph2);
+  sceneGraph1->addSceneGraph(sceneGraph3);
+
+  sceneGraph2->addSceneGraph(sceneGraph4);
+  sceneGraph3->addSceneGraph(sceneGraph5);
+}
+
+void applyAnimation() {
+  float time = glutGet(GLUT_ELAPSED_TIME);
+  float location = sinf(time / 4000.0);
+  mat4 rotation = RotateZ(location * 90.0);
+
+  sceneGraph2->setApplyRotationMatrix(rotation);
+  sceneGraph3->setApplyRotationMatrix(rotation);
+
+  if(location >=0) {
+    sceneGraph4->setPrepareRotationMatrix(Translate(0.5, 0.5, 0.0));
+    sceneGraph4->setModelOffset(Translate(-0.5, 0.5, 0.0));
+
+    sceneGraph5->setPrepareRotationMatrix(Translate(-0.5, 0.5, 0.0));
+    sceneGraph5->setModelOffset(Translate(0.5, 0.5, 0.0));
+  } else {
+    sceneGraph4->setPrepareRotationMatrix(Translate(-0.5, 0.5, 0.0));
+    sceneGraph4->setModelOffset(Translate(0.5, 0.5, 0.0));
+
+    sceneGraph5->setPrepareRotationMatrix(Translate(0.5, 0.5, 0.0));
+    sceneGraph5->setModelOffset(Translate(-0.5, 0.5, 0.0));
+  }
+
+  rotation = RotateZ(location * -90.0);
+  sceneGraph4->setApplyRotationMatrix(rotation);
+  sceneGraph5->setApplyRotationMatrix(rotation);
+}
+
+void drawSceneGraph(SceneGraph *sceneGraph, mat4 mo) {
+  mo = mo * sceneGraph->getPrepareRotationMatrix() * sceneGraph->getApplyRotationMatrix() * sceneGraph->getModelOffset();
+  glUniformMatrix4fv(modelOrientation, 1, GL_TRUE, mo);
+  sceneGraph->getModel()->draw();
+
+  for(unsigned int i = 0; i < sceneGraph->getChildren().size(); i++) {
+    drawSceneGraph(sceneGraph->getChildren()[i], mo);
+  }
 }
 
 void display(void) {
-  // clear context variables & draw triangle starting at 0
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  mat4 mv = camera.getModelViewMatrix();
-  glUniformMatrix4fv(modelView, 1, GL_TRUE, mv);
 
   mat4 p = camera.getProjectionMatrix();
   glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
-  model->draw();
+  mat4 mv = camera.getModelViewMatrix();
+  glUniformMatrix4fv(modelView, 1, GL_TRUE, mv);
 
-  //mv = mv * Translate(-3.0, 0.0, 0.0);
-  //glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-  //model2->draw();
+  mat4 mo = Translate(0.0, 0.0, 0.0);
+  glUniformMatrix4fv(modelOrientation, 1, GL_TRUE, mo);
+
+  floorModel->draw();
+
+  applyAnimation();
+  drawSceneGraph(sceneGraph1, Translate(0.0, 0.0, 0.0));
 
   glutSwapBuffers();
 }
@@ -252,8 +311,8 @@ void init(void) {
   color4 lightDiffuse(1.0, 1.0, 1.0, 1.0);
   color4 lightSpecular(0.0, 0.0, 0.0, 1.0);
 
-  point4 lightPosition2(0.0, -5.0, 0.0, 1.0);
-  color4 lightDiffuse2(1.0, 0.0, 0.0, 1.0);
+  point4 lightPosition2(0.0, 5.0, 0.0, 1.0);
+  color4 lightDiffuse2(0.0, 0.0, 1.0, 1.0);
   color4 lightSpecular2(0.0, 0.0, 0.0, 1.0);
 
   glUniform4fv(glGetUniformLocation(program, "LightAmbient"), 1, lightAmbient);
@@ -266,16 +325,16 @@ void init(void) {
   glUniform4fv(glGetUniformLocation(program, "LightPosition"), 1, lightPosition);
   glUniform4fv(glGetUniformLocation(program, "LightPosition2"), 1, lightPosition2);
 
-  modelView = glGetUniformLocation(program, "ModelView");
+
   projection = glGetUniformLocation(program, "Projection");
+  modelView = glGetUniformLocation(program, "ModelView");
+  modelOrientation = glGetUniformLocation(program, "ModelOrientation");
 
   GLuint uMaterialAmbient = glGetUniformLocation(program, "MaterialAmbient");
   GLuint uMaterialDiffuse = glGetUniformLocation(program, "MaterialDiffuse");
   GLuint uMaterialSpecular = glGetUniformLocation(program, "MaterialSpecular");
   GLuint uMaterialShininess = glGetUniformLocation(program, "MaterialShininess");
 
-  printf("vPosition %d, vNormal %d, vTextureCoords %d, uTexture %d, uUseTexture %d, uMaterialAmbient %d, uMaterialDiffuse %d, uMaterialSpecular %d, uMaterialShininess %d\n",
-      vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   createModels(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
 
   glShadeModel(GL_FLAT);

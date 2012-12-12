@@ -7,6 +7,7 @@ TARGETS = $(basename $(SOURCES))
 INIT_SHADER = Common/InitShader.o
 INIT_MODEL =  SpelchkCommon/Model.o
 INIT_CAMERA = SpelchkCommon/Camera.o
+INIT_SCENEGRAPH = SpelchkCommon/SceneGraph.o
 
 CXXOPTS = -O2 -g -Wall -fmessage-length=0
 CXXDEFS = -DFREEGLUT_STATIC -DGLEW_STATIC
@@ -26,7 +27,7 @@ DIRT = $(wildcard *.o *.i *~ */*~ *.log)
 
 default all: $(TARGETS)
 
-$(TARGETS): $(INIT_SHADER) $(INIT_CAMERA) $(INIT_MODEL)
+$(TARGETS): $(INIT_SHADER) $(INIT_CAMERA) $(INIT_MODEL) $(INIT_SCENEGRAPH)
 
 %: %.cpp
 	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@

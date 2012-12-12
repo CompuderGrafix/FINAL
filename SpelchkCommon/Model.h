@@ -32,7 +32,7 @@ class Model {
     std::vector<GLfloat> textureCoords;
 
     bool useTexture;
-    GLuint texture_id;
+    GLint textureId;
 
   public:
     Model(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords,
@@ -47,7 +47,7 @@ class Model {
     void calculateNormals();
 
     void setMaterial(vec4 materialAmbient, vec4 materialDiffuse, vec4 materialSpecular, float materialShininess);
-    void setTexture(GLuint texture_id, std::vector<GLfloat> textureCoords);
+    void setTexture(GLint textureId, std::vector<GLfloat> textureCoords);
 
     void upload();
     void draw();

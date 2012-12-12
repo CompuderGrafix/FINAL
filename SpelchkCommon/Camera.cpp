@@ -2,13 +2,21 @@
  * Camera.cpp
  *
  *  Created on: Dec 1, 2012
- *      Author: soujiroboi
+ *      Author: Hoanh Nguyen
  */
 
 #include "Camera.h"
 
+Camera::Camera() {
+  reset();
+}
+
+Camera::~Camera() {
+}
+
 void Camera::reset() {
   projectionType = 0;
+  fovy = 45;
 
   left = -1.0;
   right = 1.0;
@@ -25,7 +33,7 @@ void Camera::reset() {
   yAngle = 0.0;
   zAngle = 0.0;
 
-  oldTranslationVector = vec4(0.0, 0.0, -2.0, 0.0);
+  oldTranslationVector = vec4(0.0, -1.0, -2.0, 0.0);
   translationVector = oldTranslationVector;
   calculateTranslationVector();
 }
@@ -71,6 +79,13 @@ void Camera::rotateCamera(float _xAngle, float _yAngle, float _zAngle) {
   yAngle += _yAngle;
   zAngle += _zAngle;
 
+  // Keep camera from flipping over
+  if(xAngle > 90.0) {
+    xAngle = 90.0;
+  } else if(xAngle < -90) {
+    xAngle = -90;
+  }
+
   calculateTranslationVector();
 }
 
@@ -83,13 +98,4 @@ void Camera::setScreenSize(int width, int height) {
 
 void Camera::setProjection(int _projectionType) {
   projectionType = _projectionType;
-}
-
-Camera::Camera() : projectionType(0),
-                   fovy(45.0)                       
-{
-  reset();
-}
-
-Camera::~Camera() {
 }

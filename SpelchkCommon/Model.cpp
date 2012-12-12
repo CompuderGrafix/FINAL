@@ -16,15 +16,11 @@ Model::Model(GLuint _vPosition, GLuint _vNormal, GLuint _vTextureCoords,
 
   uTexture = _uTexture;
   uUseTexture = _uUseTexture;
-  texture_id = 0;
 
   uMaterialAmbient = _uMaterialAmbient;
   uMaterialDiffuse = _uMaterialDiffuse;
   uMaterialSpecular = _uMaterialSpecular;
   uMaterialShininess = _uMaterialShininess;
-
-  printf("vPosition %d, vNormal %d, vTextureCoords %d, uTexture %d, uUseTexture %d, uMaterialAmbient %d, uMaterialDiffuse %d, uMaterialSpecular %d, uMaterialShininess %d\n",
-      vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
 
   vboVertices = 0;
   vboNormals = 0;
@@ -33,6 +29,7 @@ Model::Model(GLuint _vPosition, GLuint _vNormal, GLuint _vTextureCoords,
   materialShininess = 0;
 
   useTexture = false;
+  textureId = 0;
 }
 
 Model::~Model() {
@@ -104,8 +101,8 @@ void Model::setMaterial(vec4 _materialAmbient, vec4 _materialDiffuse, vec4 _mate
   materialShininess = _materialShininess;
 }
 
-void Model::setTexture(GLuint _texture_id, std::vector<GLfloat> _textureCoords) {
-  texture_id = _texture_id;
+void Model::setTexture(GLint _textureId, std::vector<GLfloat> _textureCoords) {
+  textureId = _textureId;
   useTexture = true;
   textureCoords = _textureCoords;
 }
@@ -164,9 +161,7 @@ void Model::draw() {
   }
 
   if (vboTextureCoords != 0) {
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(uTexture, 0);
-
+    glUniform1i(uTexture, textureId);
     glEnableVertexAttribArray(vTextureCoords);
     glBindBuffer(GL_ARRAY_BUFFER, vboTextureCoords);
     glVertexAttribPointer(
