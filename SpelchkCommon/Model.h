@@ -54,7 +54,10 @@ class Model {
 };
 
 void triangle(Model *model, const vec4& a, const vec4& b, const vec4& c);
-void tetrahedron(Model *model, int count);
-void cube(Model *model);
+void createTetrahedronModel(Model *model, int count);
+void createCubeModel(Model *model);
+void createFloorModel(Model *model);
+void createLongStickModel(Model *model);
+void createShortStickModel(Model *model);
 
 #endif /* MODEL_H_ */
