@@ -2,7 +2,7 @@
  * Camera.h
  *
  *  Created on: Dec 1, 2012
- *      Author: soujiroboi
+ *      Author: Hoanh Nguyen
  */
 
 #ifndef CAMERA_H_

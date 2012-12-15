@@ -1,6 +1,5 @@
 #version 150
 
-in vec4 color;
 in vec4 fPosition;
 in vec3 fNormal;
 in vec2 fTexcoord;
@@ -30,9 +29,6 @@ void main()
     vec3 L2 = normalize( lightPos2 - pos );
     vec3 H2 = normalize( L2 + E );
 
-    // Transform vertex normal into eye coordinates
-    vec3 N = normalize( ModelView*vec4(fNormal, 0.0) ).xyz;
-
     // Compute terms in the illumination equation
     vec4 ambient = LightAmbient * MaterialAmbient;
     
@@ -44,31 +40,27 @@ void main()
     	tempColor = MaterialDiffuse;
     }
 
-    float Kd = max( dot(L, N), 0.0 );
+    float Kd = max( dot(L, fNormal), 0.0 );
     vec4  diffuse = Kd * LightDiffuse * tempColor;
 
-    float Ks = pow( max(dot(N, H), 0.0), MaterialShininess );
+    float Ks = pow( max(dot(fNormal, H), 0.0), MaterialShininess );
     vec4  specular = Ks * LightSpecular * MaterialSpecular;
     
-    if( dot(L, N) < 0.0 ) {
+    if( dot(L, fNormal) < 0.0 ) {
         specular = vec4(0.0, 0.0, 0.0, 1.0);
     } 
     
-    float Kd2 = max( dot(L2, N), 0.0 );
+    float Kd2 = max( dot(L2, fNormal), 0.0 );
     vec4  diffuse2 = Kd2*LightDiffuse2 * tempColor;
 
-    float Ks2 = pow( max(dot(N, H2), 0.0), MaterialShininess );
+    float Ks2 = pow( max(dot(fNormal, H2), 0.0), MaterialShininess );
     vec4  specular2 = Ks2 * LightSpecular2 * MaterialSpecular;
     
-    if( dot(L2, N) < 0.0 ) {
+    if( dot(L2, fNormal) < 0.0 ) {
         specular2 = vec4(0.0, 0.0, 0.0, 1.0);
     } 
     
     gl_FragColor = ambient + diffuse + specular + diffuse2 + specular2;
     gl_FragColor.a = 1.0;
-
-    //gl_FragColor = color;
-	//vec2 flipped_texcoord = vec2(f_texcoord.x, 1.0 - f_texcoord.y);
-	//gl_FragColor = texture2D(mytexture, flipped_texcoord);
 } 
 

@@ -8,6 +8,7 @@ INIT_SHADER = Common/InitShader.o
 INIT_MODEL =  SpelchkCommon/Model.o
 INIT_CAMERA = SpelchkCommon/Camera.o
 KINECT = SpelchkCommon/KinectInator.o
+INIT_SCENEGRAPH = SpelchkCommon/SceneGraph.o
 
 CXXOPTS = -O2 -g -Wall -fmessage-length=0 -msse3 
 CXXDEFS = -DFREEGLUT_STATIC -DGLEW_STATIC
@@ -27,7 +28,7 @@ DIRT = $(wildcard *.o *.i *~ */*~ *.log)
 
 default all: $(TARGETS)
 
-$(TARGETS): $(INIT_SHADER) $(INIT_CAMERA) $(INIT_MODEL) $(KINECT)
+$(TARGETS): $(INIT_SHADER) $(INIT_CAMERA) $(INIT_MODEL) $(INIT_SCENEGRAPH) $(KINECT)
 
 %: %.cpp
 	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@
