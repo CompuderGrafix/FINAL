@@ -251,44 +251,7 @@ void triangle(Model *model, const vec4& a, const vec4& b, const vec4& c) {
   model->addPoint(c);
 }
 
-void divide_triangle(Model *model, const vec4& a, const vec4& b, const vec4& c, int count) {
-  if (count > 0) {
-    vec4 v1 = unit(a + b);
-    vec4 v2 = unit(a + c);
-    vec4 v3 = unit(b + c);
-    divide_triangle(model, a, v1, v2, count - 1);
-    divide_triangle(model, c, v2, v3, count - 1);
-    divide_triangle(model, b, v3, v1, count - 1);
-    divide_triangle(model, v1, v3, v2, count - 1);
-  } else {
-    triangle(model, a, b, c);
-  }
-}
-
-void tetrahedron(Model *model, int count) {
-  vec4 v[4] = { vec4(0.0, 0.0, 1.0, 1.0), vec4(0.0, 0.942809, -0.333333, 1.0), vec4(-0.816497, -0.471405, -0.333333, 1.0), vec4(0.816497, -0.471405, -0.333333, 1.0) };
-
-  divide_triangle(model, v[0], v[1], v[2], count);
-  divide_triangle(model, v[3], v[2], v[1], count);
-  divide_triangle(model, v[0], v[3], v[1], count);
-  divide_triangle(model, v[0], v[2], v[3], count);
-
-  model->calculateNormals();
-}
-
-void cube(Model *model) {
-  // Vertices of a unit cube centered at origin, sides aligned with axes
-  vec4 vertices[8] = {
-    vec4(-0.5, -0.5, 0.5, 1.0),   // 0 left bottom front
-    vec4(-0.5, 0.5, 0.5, 1.0),    // 1 left top front
-    vec4(0.5, 0.5, 0.5, 1.0),     // 2 right top front
-    vec4(0.5, -0.5, 0.5, 1.0),    // 3 right bottom front
-    vec4(-0.5, -0.5, -0.5, 1.0),  // 4 left bottom back
-    vec4(-0.5, 0.5, -0.5, 1.0),   // 5 left top back
-    vec4(0.5, 0.5, -0.5, 1.0),    // 6 right top back
-    vec4(0.5, -0.5, -0.5, 1.0)    // 7 right bottom back
-  };
-
+void arrangeBox(Model *model, vec4 vertices[]) {
   //front
   triangle(model, vertices[1], vertices[0], vertices[3]);
   triangle(model, vertices[1], vertices[3], vertices[2]);
@@ -315,3 +278,93 @@ void cube(Model *model) {
 
   model->calculateNormals();
 }
+
+void divide_triangle(Model *model, const vec4& a, const vec4& b, const vec4& c, int count) {
+  if (count > 0) {
+    vec4 v1 = unit(a + b);
+    vec4 v2 = unit(a + c);
+    vec4 v3 = unit(b + c);
+    divide_triangle(model, a, v1, v2, count - 1);
+    divide_triangle(model, c, v2, v3, count - 1);
+    divide_triangle(model, b, v3, v1, count - 1);
+    divide_triangle(model, v1, v3, v2, count - 1);
+  } else {
+    triangle(model, a, b, c);
+  }
+}
+
+void createTetrahedronModel(Model *model, int count) {
+  vec4 v[4] = { vec4(0.0, 0.0, 1.0, 1.0), vec4(0.0, 0.942809, -0.333333, 1.0), vec4(-0.816497, -0.471405, -0.333333, 1.0), vec4(0.816497, -0.471405, -0.333333, 1.0) };
+
+  divide_triangle(model, v[0], v[1], v[2], count);
+  divide_triangle(model, v[3], v[2], v[1], count);
+  divide_triangle(model, v[0], v[3], v[1], count);
+  divide_triangle(model, v[0], v[2], v[3], count);
+
+  model->calculateNormals();
+}
+
+void createCubeModel(Model *model) {
+  // Vertices of a unit cube centered at origin, sides aligned with axes
+  vec4 vertices[8] = {
+    vec4(-0.5, -0.5,  0.5, 1.0),   // 0 left bottom front
+    vec4(-0.5,  0.5,  0.5, 1.0),    // 1 left top front
+    vec4( 0.5,  0.5,  0.5, 1.0),     // 2 right top front
+    vec4( 0.5, -0.5,  0.5, 1.0),    // 3 right bottom front
+    vec4(-0.5, -0.5, -0.5, 1.0),  // 4 left bottom back
+    vec4(-0.5,  0.5, -0.5, 1.0),   // 5 left top back
+    vec4( 0.5,  0.5, -0.5, 1.0),    // 6 right top back
+    vec4( 0.5, -0.5, -0.5, 1.0)    // 7 right bottom back
+  };
+
+  arrangeBox(model, vertices);
+}
+
+void createFloorModel(Model *model) {
+  vec4 floorPoints[4] = {
+      vec4(-30.0, 0.0, -30.0, 1.0),
+      vec4(-30.0, 0.0, 30.0, 1.0),
+      vec4(30.0, 0.0, 30.0, 1.0),
+      vec4(30.0, 0.0, -30.0, 1.0)
+  };
+
+  model->addPoint(floorPoints[0]);
+  model->addPoint(floorPoints[1]);
+  model->addPoint(floorPoints[2]);
+  model->addPoint(floorPoints[0]);
+  model->addPoint(floorPoints[2]);
+  model->addPoint(floorPoints[3]);
+  model->calculateNormals();
+}
+
+void createLongStickModel(Model *model) {
+  vec4 vertices[8] = {
+    vec4(-0.05, -0.8, 0.05, 1.0),   // 0 left bottom front
+    vec4(-0.05, 0.8, 0.05, 1.0),    // 1 left top front
+    vec4(0.05, 0.8, 0.05, 1.0),     // 2 right top front
+    vec4(0.05, -0.8, 0.05, 1.0),    // 3 right bottom front
+    vec4(-0.05, -0.8, -0.05, 1.0),  // 4 left bottom back
+    vec4(-0.05, 0.8, -0.05, 1.0),   // 5 left top back
+    vec4(0.05, 0.8, -0.05, 1.0),    // 6 right top back
+    vec4(0.05, -0.8, -0.05, 1.0)    // 7 right bottom back
+  };
+
+  arrangeBox(model, vertices);
+}
+
+void createShortStickModel(Model *model) {
+  vec4 vertices[8] = {
+    vec4(-0.05, -0.8, 0.05, 1.0),   // 0 left bottom front
+    vec4(-0.05, 0.0, 0.05, 1.0),    // 1 left top front
+    vec4(0.05, 0.0, 0.05, 1.0),     // 2 right top front
+    vec4(0.05, -0.8, 0.05, 1.0),    // 3 right bottom front
+    vec4(-0.05, -0.8, -0.05, 1.0),  // 4 left bottom back
+    vec4(-0.05, 0.0, -0.05, 1.0),   // 5 left top back
+    vec4(0.05, 0.0, -0.05, 1.0),    // 6 right top back
+    vec4(0.05, -0.8, -0.05, 1.0)    // 7 right bottom back
+  };
+
+  arrangeBox(model, vertices);
+}
+
+

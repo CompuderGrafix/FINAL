@@ -8,7 +8,7 @@
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
-#include "Angel.h"
+#include "../include/Angel.h"
 
 class Camera {
   private:
@@ -27,6 +27,7 @@ class Camera {
     GLfloat xDepth, yDepth, zDepth;
     GLfloat xAngle, yAngle, zAngle;
 
+    vec4 initialTranslationVector;
     vec4 translationVector;
     vec4 oldTranslationVector;
 
@@ -35,7 +36,7 @@ class Camera {
     void calculateTranslationVector();
 
   public:
-    Camera();
+    Camera(vec4 initialTranslationVector);
     virtual ~Camera();
 
     mat4 getProjectionMatrix();

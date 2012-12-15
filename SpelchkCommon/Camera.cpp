@@ -7,7 +7,8 @@
 
 #include "Camera.h"
 
-Camera::Camera() {
+Camera::Camera(vec4 _initialTranslationVector) {
+  initialTranslationVector = _initialTranslationVector;
   reset();
 }
 
@@ -33,7 +34,7 @@ void Camera::reset() {
   yAngle = 0.0;
   zAngle = 0.0;
 
-  oldTranslationVector = vec4(0.0, -1.0, -2.0, 0.0);
+  oldTranslationVector = initialTranslationVector;
   translationVector = oldTranslationVector;
   calculateTranslationVector();
 }

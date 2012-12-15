@@ -15,24 +15,47 @@ typedef Angel::vec4 point4;
 
 Model *floorModel;
 
-Model *model;
-Model *model2;
-
-SceneGraph *sceneGraph1;
-SceneGraph *sceneGraph2;
-SceneGraph *sceneGraph3;
-SceneGraph *sceneGraph4;
-SceneGraph *sceneGraph5;
+SceneGraph *boxTowerSceneGraph1;
+SceneGraph *boxTowerSceneGraph2;
+SceneGraph *stickFigureSceneGraph1;
+SceneGraph *sphereSceneGraph;
 
 GLuint projection; // projection matrix uniform shader variable location
 GLuint modelView;  // model-view matrix uniform shader variable location
 GLuint modelOrientation;  // model-orientation matrix uniform shader variable location
 
+int numberOfLights = 5;
+GLuint LightDiffuse;
+GLfloat lightPosition[] = {
+    0.0, 0.0, 1.0, 1.0,
+    -6.93, 3.0, 4.0, 1.0,
+    0.0, 3.0, -8.0, 1.0,
+    6.93, 3.0, 4.0, 1.0,
+    0.0, 5.0, 0.0, 1.0
+};
+
+GLfloat lightDiffuse[] = {
+    1.0, 1.0, 1.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0
+};
+
+GLfloat lightSpecular[] = {
+    0.0, 0.0, 0.0, 1.0,
+    0.0, 0.0, 0.0, 1.0,
+    0.0, 0.0, 0.0, 1.0,
+    0.0, 0.0, 0.0, 1.0,
+    0.0, 0.0, 0.0, 1.0
+};
+
 int screenHeight, screenWidth;
 
 bool debug = false;
 
-Camera camera;
+Camera camera(vec4(0.0, -2.0, -10.0, 0.0));
+//Camera camera(vec4(0.0, 0.0, 0.0, 0.0));
 
 //----------------------------------------------------------------------------
 
@@ -46,6 +69,7 @@ void reshape(int width, int height) {
   screenWidth = width;
 }
 
+bool light = true;
 void keyboard(unsigned char key, int x, int y) {
   switch (key) {
     case 033: // Escape Key
@@ -54,16 +78,31 @@ void keyboard(unsigned char key, int x, int y) {
       exit(EXIT_SUCCESS);
       break;
     case 'w': // move up
-      camera.moveCamera(0.0, -0.1, 0.0);
+      camera.moveCamera(0.0, -0.2, 0.0);
       break;
     case 's': // move down
-      camera.moveCamera(0.0, 0.1, 0.0);
+      camera.moveCamera(0.0, 0.2, 0.0);
       break;
     case 'a': // move left
-      camera.moveCamera(0.1, 0.0, 0.0);
+      camera.moveCamera(0.2, 0.0, 0.0);
       break;
     case 'd': // move right
-      camera.moveCamera(-0.1, 0.0, 0.0);
+      camera.moveCamera(-0.2, 0.0, 0.0);
+      break;
+    case 'l': // move right
+      if(light) {
+        lightDiffuse[0] = 0.0;
+        lightDiffuse[1] = 0.0;
+        lightDiffuse[2] = 0.0;
+      } else {
+        lightDiffuse[0] = 1.0;
+        lightDiffuse[1] = 1.0;
+        lightDiffuse[2] = 1.0;
+      }
+
+      glUniform4fv(LightDiffuse, numberOfLights, lightDiffuse);
+
+      light = !light;
       break;
     case ' ': // reset values to their defaults
       camera.reset();
@@ -151,12 +190,16 @@ void loadTextures() {
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, textures[1]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  image = SOIL_load_image("OpenGL_Tutorial_Texture2.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+  image = SOIL_load_image("crate.jpg", &width, &height, 0, SOIL_LOAD_RGB);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
   SOIL_free_image_data(image);
 }
 
 void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuint uTexture, GLuint uUseTexture, GLuint uMaterialAmbient, GLuint uMaterialDiffuse, GLuint uMaterialSpecular, GLuint uMaterialShininess) {
+
+  SceneGraph *tempSceneGraph1;
+  SceneGraph *tempSceneGraph2;
+  SceneGraph *tempSceneGraph3;
 
   loadTextures();
   GLfloat squareTexureCoords[2*6] = {
@@ -176,85 +219,179 @@ void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuin
   }
 
   vec4 materialAmbient(0.0, 0.0, 0.0, 1.0);
-  vec4 materialDiffuse(0.0, 0.8, 0.0, 1.0);
-  vec4 materialSpecular(0.2, 0.2, 0.2, 1.0);
-  float materialShininess = 5.0;
+  vec4 materialDiffuse(0.3, 0.3, 0.3, 1.0);
+  vec4 materialSpecular(0.0, 0.0, 0.0, 1.0);
+  float materialShininess = 0.0;
 
-  vec4 floorPoints[4] = {
-      vec4(-10.0, 0.0, -10.0, 1.0),
-      vec4(-10.0, 0.0, 10.0, 1.0),
-      vec4(10.0, 0.0, 10.0, 1.0),
-      vec4(10.0, 0.0, -10.0, 1.0)
-  };
   floorModel = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
-  floorModel->addPoint(floorPoints[0]);
-  floorModel->addPoint(floorPoints[1]);
-  floorModel->addPoint(floorPoints[2]);
-  floorModel->addPoint(floorPoints[0]);
-  floorModel->addPoint(floorPoints[2]);
-  floorModel->addPoint(floorPoints[3]);
-  floorModel->calculateNormals();
+  createFloorModel(floorModel);
   floorModel->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
   floorModel->upload();
 
-  materialAmbient = vec4(0.0, 0.0, 0.0, 1.0);
-  materialDiffuse = vec4(0.8, 0.8, 0.8, 1.0);
-  materialSpecular = vec4(0.2, 0.2, 0.2, 1.0);
+  Model *box1 = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  createCubeModel(box1);
+  box1->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
+  box1->setTexture(0, textureCoords);
+  box1->upload();
+
+  Model *box2 = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  createCubeModel(box2);
+  box2->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
+  box2->setTexture(1, textureCoords);
+  box2->upload();
+
+  //Create SceneGraph of stacked boxes
+  boxTowerSceneGraph1 = new SceneGraph(box1, Translate(0.0, 0.0, 0.0), Translate(0.0, 0.5, 0.0));
+  tempSceneGraph1 = new SceneGraph(box2, Translate(0.0, 0.0, 0.0), Translate(0.0, 1.0, 0.0));
+  tempSceneGraph2 = new SceneGraph(box1, Translate(0.0, 0.0, 0.0), Translate(0.0, 1.0, 0.0));
+  tempSceneGraph3 = new SceneGraph(box2, Translate(0.0, 0.0, 0.0), Translate(0.0, 1.0, 0.0));
+
+  boxTowerSceneGraph1->addSceneGraph(tempSceneGraph1);
+  tempSceneGraph1->addSceneGraph(tempSceneGraph2);
+  tempSceneGraph2->addSceneGraph(tempSceneGraph3);
+
+  //Stick figure
+  materialAmbient = vec4(0.0, 0.0, 0.0, 0.0);
+  materialDiffuse = vec4(0.5, 0.2, 0.1, 1.0);
+  materialSpecular = vec4(0.0, 0.0, 0.0, 1.0);
+  materialShininess = 0.0;
+
+  Model *body = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  createLongStickModel(body);
+  body->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
+  body->upload();
+
+  Model *appendage = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  createShortStickModel(appendage);
+  appendage->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
+  appendage->upload();
+
+  stickFigureSceneGraph1 = new SceneGraph(body, Translate(0.0, 0.0, 0.0), Translate(0.0, 0.0, 0.0));
+
+  // right leg
+  tempSceneGraph1 = new SceneGraph(appendage, Translate(0.0, -0.8, 0.0) * RotateZ(-15.0) * RotateX(-65.0), Translate(0.0, 0.0, 0.0));
+  tempSceneGraph2 = new SceneGraph(appendage, Translate(0.0, -0.8, 0.0) * RotateZ(15.0) * RotateX(65.0), Translate(0.0, 0.0, 0.0));
+  stickFigureSceneGraph1->addSceneGraph(tempSceneGraph1);
+  tempSceneGraph1->addSceneGraph(tempSceneGraph2);
+
+  // left leg
+  tempSceneGraph1 = new SceneGraph(appendage, Translate(0.0, -0.8, 0.0) * RotateZ(15.0) * RotateX(45.0), Translate(0.0, 0.0, 0.0));
+  tempSceneGraph2 = new SceneGraph(appendage, Translate(0.0, -0.8, 0.0) * RotateZ(-15.0) * RotateX(10.0), Translate(0.0, 0.0, 0.0));
+  stickFigureSceneGraph1->addSceneGraph(tempSceneGraph1);
+  tempSceneGraph1->addSceneGraph(tempSceneGraph2);
+
+  // right arm
+  tempSceneGraph1 = new SceneGraph(appendage, Translate(0.0, 0.3, 0.0) * RotateZ(-20.0) * RotateX(30.0), Translate(0.0, 0.0, 0.0));
+  tempSceneGraph2 = new SceneGraph(appendage, Translate(0.0, -0.8, 0.0) * RotateZ(20.0) * RotateX(-110.0), Translate(0.0, 0.0, 0.0));
+  stickFigureSceneGraph1->addSceneGraph(tempSceneGraph1);
+  tempSceneGraph1->addSceneGraph(tempSceneGraph2);
+
+  // left arm
+  tempSceneGraph1 = new SceneGraph(appendage, Translate(0.0, 0.3, 0.0) * RotateZ(20.0) * RotateX(-30.0), Translate(0.0, 0.0, 0.0));
+  tempSceneGraph2 = new SceneGraph(appendage, Translate(0.0, -0.8, 0.0) * RotateZ(-20.0) * RotateX(-110.0), Translate(0.0, 0.0, 0.0));
+  stickFigureSceneGraph1->addSceneGraph(tempSceneGraph1);
+  tempSceneGraph1->addSceneGraph(tempSceneGraph2);
+
+  // head
+  Model *head = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  head->load_obj("suzanne.obj");
+  head->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
+  head->upload();
+
+  tempSceneGraph1 = new SceneGraph(head, Translate(0.0, 0.8, 0.0) * Scale(0.4, 0.4, 0.4), Translate(0.0, 0.0, 0.0));
+  stickFigureSceneGraph1->addSceneGraph(tempSceneGraph1);
+
+  // second box tower
+  boxTowerSceneGraph2 = new SceneGraph(box2, Translate(0.0, 0.0, 0.0), Translate(0.0, 0.5, 0.0));
+  tempSceneGraph1 = new SceneGraph(box1, Translate(0.0, 0.5, 0.0), Translate(0.0, 0.5, 0.0));
+  tempSceneGraph2 = new SceneGraph(box1, Translate(0.0, 0.5, 0.0), Translate(0.0, 0.5, 0.0));
+
+  boxTowerSceneGraph2->addSceneGraph(tempSceneGraph1);
+  boxTowerSceneGraph2->addSceneGraph(tempSceneGraph2);
+
+  // sphere
+  materialAmbient = vec4(0.0, 0.0, 0.0, 0.0);
+  materialDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
+  materialSpecular = vec4(0.0, 0.0, 0.0, 1.0);
   materialShininess = 5.0;
 
-  model = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
-  //model->load_obj("suzanne.obj");
-  cube(model);
-  model->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
-  model->setTexture(0, textureCoords);
-  model->upload();
+  Model *sphere = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  createTetrahedronModel(sphere, 7);
+  //createCubeModel(sphere);
+  sphere->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
+  sphere->upload();
 
-  model2 = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
-  cube(model2);
-  //tetrahedron(model2, 7);
-  model2->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
-  model2->setTexture(1, textureCoords);
-  model2->upload();
-
-  sceneGraph1 = new SceneGraph(model, Translate(0.0, 0.0, 0.0), Translate(0.0, 0.5, 0.0));
-  sceneGraph2 = new SceneGraph(model2, Translate(0.5, 0.5, 0.0), Translate(0.5, 0.5, 0.0));
-  sceneGraph3 = new SceneGraph(model2, Translate(-0.5, 0.5, 0.0), Translate(-0.5, 0.5, 0.0));
-
-  sceneGraph4 = new SceneGraph(model, Translate(0.5, 0.5, 0.0), Translate(-0.5, 0.5, 0.0));
-  sceneGraph5 = new SceneGraph(model, Translate(-0.5, 0.5, 0.0), Translate(0.5, 0.5, 0.0));
-
-  sceneGraph1->addSceneGraph(sceneGraph2);
-  sceneGraph1->addSceneGraph(sceneGraph3);
-
-  sceneGraph2->addSceneGraph(sceneGraph4);
-  sceneGraph3->addSceneGraph(sceneGraph5);
+  sphereSceneGraph = new SceneGraph(sphere, Translate(0.0, 0.0, 0.0), Translate(0.0, 0.0, 0.0));
 }
 
-void applyAnimation() {
-  float time = glutGet(GLUT_ELAPSED_TIME);
-  float location = sinf(time / 4000.0);
-  mat4 rotation = RotateZ(location * 90.0);
+void runningAnimation(float stepsPerSecond, SceneGraph *stickFigure) {
+  float stepPercentage = cosf(M_PI * stepsPerSecond) / 2.0 + 0.5;
+  float stickFigureYOffset = (cosf(2.0 * M_PI * stepsPerSecond) / 2.0 + 0.5) * 0.2;
 
-  sceneGraph2->setApplyRotationMatrix(rotation);
-  sceneGraph3->setApplyRotationMatrix(rotation);
+  float upperLegRotation = stepPercentage * 110.0;
+  float lowerLegRotation = stepPercentage * 55.0;
+  float armRotation = stepPercentage * 55.0;
 
-  if(location >=0) {
-    sceneGraph4->setPrepareRotationMatrix(Translate(0.5, 0.5, 0.0));
-    sceneGraph4->setModelOffset(Translate(-0.5, 0.5, 0.0));
+  stickFigure->setModelOffset(Translate(0.0, stickFigureYOffset, 0.0));
 
-    sceneGraph5->setPrepareRotationMatrix(Translate(-0.5, 0.5, 0.0));
-    sceneGraph5->setModelOffset(Translate(0.5, 0.5, 0.0));
+  SceneGraph *rightLeg = stickFigure->getChildren()[0];
+  SceneGraph *leftLeg = stickFigure->getChildren()[1];
+  rightLeg->setApplyRotationMatrix(RotateX(upperLegRotation));
+  leftLeg->setApplyRotationMatrix(RotateX(-upperLegRotation));
+
+  rightLeg = rightLeg->getChildren()[0];
+  leftLeg = leftLeg->getChildren()[0];
+  rightLeg->setApplyRotationMatrix(RotateX(-lowerLegRotation));
+  leftLeg->setApplyRotationMatrix(RotateX(lowerLegRotation));
+
+  SceneGraph *rightArm = stickFigure->getChildren()[2];
+  SceneGraph *leftArm = stickFigure->getChildren()[3];
+  rightArm->setApplyRotationMatrix(RotateX(-armRotation));
+  leftArm->setApplyRotationMatrix(RotateX(armRotation));
+}
+
+void pivotingBoxes(float elapsedTime) {
+  float temp = elapsedTime / 1000.0;
+  float location = sinf(M_PI * temp);
+
+  SceneGraph *topBox1 = boxTowerSceneGraph2->getChildren()[0];
+  SceneGraph *topBox2 = boxTowerSceneGraph2->getChildren()[1];
+
+  if(((int)(temp + 1.5)) % 4 < 2) {
+    // rotate so that when the box is on top of the other box it is upright.
+    topBox1->setPrepareRotationMatrix(RotateZ(-90.0) * Translate(-0.5, 0.5, 0.0));
+    topBox1->setModelOffset(Translate(-0.5, 0.5, 0.0));
+    topBox1->setApplyRotationMatrix(RotateZ(location * 90.0));
   } else {
-    sceneGraph4->setPrepareRotationMatrix(Translate(-0.5, 0.5, 0.0));
-    sceneGraph4->setModelOffset(Translate(0.5, 0.5, 0.0));
-
-    sceneGraph5->setPrepareRotationMatrix(Translate(0.5, 0.5, 0.0));
-    sceneGraph5->setModelOffset(Translate(-0.5, 0.5, 0.0));
+    topBox1->setPrepareRotationMatrix(RotateZ(90.0) * Translate(0.5, 0.5, 0.0));
+    topBox1->setModelOffset(Translate(0.5, 0.5, 0.0));
+    topBox1->setApplyRotationMatrix(RotateZ(location * -90.0));
   }
 
-  rotation = RotateZ(location * -90.0);
-  sceneGraph4->setApplyRotationMatrix(rotation);
-  sceneGraph5->setApplyRotationMatrix(rotation);
+  if(((int)(temp + 0.5)) % 4 < 2) {
+    topBox2->setPrepareRotationMatrix(RotateX(90.0) * Translate(0.0, 0.5, -0.5));
+    topBox2->setModelOffset(Translate(0.0, 0.5, -0.5));
+    topBox2->setApplyRotationMatrix(RotateX(location * 90.0));
+  } else {
+    topBox2->setPrepareRotationMatrix(RotateX(-90.0) * Translate(0.0, 0.5, 0.5));
+    topBox2->setModelOffset(Translate(0.0, 0.5, 0.5));
+    topBox2->setApplyRotationMatrix(RotateX(location * -90.0));
+  }
+}
+
+void rotateBoxTower(float elapsedTime) {
+  float rotationsPerMinute = 5.0 * elapsedTime / 36000.0;
+
+  // Rotate boxes
+  mat4 rotation = RotateY(rotationsPerMinute * 360.0);
+  SceneGraph *tempSceneGraph = boxTowerSceneGraph1;
+  tempSceneGraph->setApplyRotationMatrix(rotation);
+  tempSceneGraph = tempSceneGraph->getChildren()[0];
+  tempSceneGraph->setApplyRotationMatrix(rotation);
+  tempSceneGraph = tempSceneGraph->getChildren()[0];
+  tempSceneGraph->setApplyRotationMatrix(rotation);
+  tempSceneGraph = tempSceneGraph->getChildren()[0];
+  tempSceneGraph->setApplyRotationMatrix(rotation);
 }
 
 void drawSceneGraph(SceneGraph *sceneGraph, mat4 mo) {
@@ -270,6 +407,8 @@ void drawSceneGraph(SceneGraph *sceneGraph, mat4 mo) {
 void display(void) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  float elapsedTime = glutGet(GLUT_ELAPSED_TIME);
+
   mat4 p = camera.getProjectionMatrix();
   glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
@@ -281,9 +420,34 @@ void display(void) {
 
   floorModel->draw();
 
-  applyAnimation();
-  drawSceneGraph(sceneGraph1, Translate(0.0, 0.0, 0.0));
+  rotateBoxTower(elapsedTime);
+  drawSceneGraph(boxTowerSceneGraph1, Translate(0.0, 0.0, 0.0));
 
+  float stepsPerSecond = 3.0 * elapsedTime / 1000.0;
+  float circlesPerSecond = 0.3 * elapsedTime / 1000.0;
+  mat4 stickFigurePositionAndOrientation = RotateY(circlesPerSecond * 360) * Translate(0.0, 2.2, 5.0) * RotateY(90.0);
+
+  runningAnimation(stepsPerSecond, stickFigureSceneGraph1);
+  drawSceneGraph(stickFigureSceneGraph1, stickFigurePositionAndOrientation);
+
+  stepsPerSecond = 5.0 * elapsedTime / 1000.0;
+  circlesPerSecond = 0.2 * elapsedTime / 1000.0;
+  stickFigurePositionAndOrientation = RotateY(circlesPerSecond * -360) * Translate(0.0, 2.2, 7.0) * RotateY(-90.0);
+
+  runningAnimation(stepsPerSecond, stickFigureSceneGraph1);
+  drawSceneGraph(stickFigureSceneGraph1, stickFigurePositionAndOrientation);
+
+  pivotingBoxes(elapsedTime);
+  mat4 pivotingBoxesDisplacement = Translate(8.0, 0.0, 8.0);
+  drawSceneGraph(boxTowerSceneGraph2, pivotingBoxesDisplacement);
+  drawSceneGraph(boxTowerSceneGraph2, RotateY(90.0) * pivotingBoxesDisplacement);
+  drawSceneGraph(boxTowerSceneGraph2, RotateY(180.0) * pivotingBoxesDisplacement);
+  drawSceneGraph(boxTowerSceneGraph2, RotateY(270.0) * pivotingBoxesDisplacement);
+
+  drawSceneGraph(sphereSceneGraph, Translate(2.0, 1.0, 2.0));
+  drawSceneGraph(sphereSceneGraph, Translate(2.0, 1.0, -2.0));
+  drawSceneGraph(sphereSceneGraph, Translate(-2.0, 1.0, 2.0));
+  drawSceneGraph(sphereSceneGraph, Translate(-2.0, 1.0, -2.0));
   glutSwapBuffers();
 }
 
@@ -295,7 +459,7 @@ void init(void) {
   glBindVertexArray(vao);
 
   // Load shaders and use the resulting shader program
-  GLuint program = InitShader("vProjectionWithMaterialAndLightShader.glsl", "fcolorshader.glsl");
+  GLuint program = InitShader("vShader.glsl", "fShader.glsl");
   glUseProgram(program);
 
   // set up vertex arrays
@@ -307,25 +471,19 @@ void init(void) {
   GLuint uUseTexture = glGetUniformLocation(program, "UseTexture");
 
   // Initialize shader lighting parameters
-  point4 lightPosition(0.0, 0.0, 2.0, 1.0);
   color4 lightAmbient(1.0, 1.0, 1.0, 1.0);
-  color4 lightDiffuse(1.0, 1.0, 1.0, 1.0);
-  color4 lightSpecular(0.0, 0.0, 0.0, 1.0);
 
-  point4 lightPosition2(0.0, 5.0, 0.0, 1.0);
-  color4 lightDiffuse2(0.0, 0.0, 1.0, 1.0);
-  color4 lightSpecular2(0.0, 0.0, 0.0, 1.0);
+  GLuint LightAmbient = glGetUniformLocation(program, "LightAmbient");
+  glUniform4fv(LightAmbient, 1, lightAmbient);
 
-  glUniform4fv(glGetUniformLocation(program, "LightAmbient"), 1, lightAmbient);
-  glUniform4fv(glGetUniformLocation(program, "LightDiffuse"), 1, lightDiffuse);
-  glUniform4fv(glGetUniformLocation(program, "LightSpecular"), 1, lightSpecular);
+  GLuint LightPosition = glGetUniformLocation(program, "LightPosition");
+  glUniform4fv(LightPosition, numberOfLights, lightPosition);
 
-  glUniform4fv(glGetUniformLocation(program, "LightDiffuse2"), 1, lightDiffuse2);
-  glUniform4fv(glGetUniformLocation(program, "LightSpecular2"), 1, lightSpecular2);
+  LightDiffuse = glGetUniformLocation(program, "LightDiffuse");
+  glUniform4fv(LightDiffuse, numberOfLights, lightDiffuse);
 
-  glUniform4fv(glGetUniformLocation(program, "LightPosition"), 1, lightPosition);
-  glUniform4fv(glGetUniformLocation(program, "LightPosition2"), 1, lightPosition2);
-
+  GLuint LightSpecular = glGetUniformLocation(program, "LightSpecular");
+  glUniform4fv(LightSpecular, numberOfLights, lightSpecular);
 
   projection = glGetUniformLocation(program, "Projection");
   modelView = glGetUniformLocation(program, "ModelView");
