@@ -7,14 +7,15 @@ TARGETS = $(basename $(SOURCES))
 INIT_SHADER = Common/InitShader.o
 INIT_MODEL =  SpelchkCommon/Model.o
 INIT_CAMERA = SpelchkCommon/Camera.o
+KINECT = SpelchkCommon/KinectInator.o
 
-CXXOPTS = -O2 -g -Wall -fmessage-length=0
+CXXOPTS = -O2 -g -Wall -fmessage-length=0 -msse3 
 CXXDEFS = -DFREEGLUT_STATIC -DGLEW_STATIC
-CXXINCS = -Iinclude
+CXXINCS = -Iinclude -I~/kinect/OpenNI/Include -I/usr/include/ni
 
 CXXFLAGS = $(CXXOPTS) $(CXXDEFS) $(CXXINCS)
 
-LDLIBS = -lGLEW -lglut -lGL -lXmu -lX11 -lm -lSOIL
+LDLIBS = -L/usr/local/lib -lboost -lboost_threads -lboost_functions -lGLEW -lglut -lGL -lXmu -lX11 -lm -lSOIL -lOpenNI
 
 LDFLAGS = $(LDOPTS) $(LDDIRS) $(LDLIBS)
 
@@ -26,7 +27,7 @@ DIRT = $(wildcard *.o *.i *~ */*~ *.log)
 
 default all: $(TARGETS)
 
-$(TARGETS): $(INIT_SHADER) $(INIT_CAMERA) $(INIT_MODEL)
+$(TARGETS): $(INIT_SHADER) $(INIT_CAMERA) $(INIT_MODEL) $(KINECT)
 
 %: %.cpp
 	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@

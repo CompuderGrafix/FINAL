@@ -5,6 +5,9 @@
 *  now it's abstracted in a class, and runs in parallel with the opengl mainloop
 **************************************************/
 
+#define EDBG
+
+#include "KinectInator.h"
 
 //---------------------------------------------------------------------------
 // Code
@@ -17,8 +20,10 @@ XnBool fileExists(const char *fn)
 	return exists;
 }
 
+using namespace TiemSpelchk;
+
 // Callback: New user was detected
-void XN_CALLBACK_TYPE User_NewUser(xn::UserGenerator& /*generator*/, XnUserID nId, void* /*pCookie*/)
+void XN_CALLBACK_TYPE Lurn2SpielNub::User_NewUser(xn::UserGenerator& /*generator*/, XnUserID nId, void* /*pCookie*/)
 {
     XnUInt32 epochTime = 0;
     xnOSGetEpochTime(&epochTime);
@@ -34,14 +39,14 @@ void XN_CALLBACK_TYPE User_NewUser(xn::UserGenerator& /*generator*/, XnUserID nI
     }
 }
 // Callback: An existing user was lost
-void XN_CALLBACK_TYPE User_LostUser(xn::UserGenerator& /*generator*/, XnUserID nId, void* /*pCookie*/)
+void XN_CALLBACK_TYPE Lurn2SpielNub::User_LostUser(xn::UserGenerator& /*generator*/, XnUserID nId, void* /*pCookie*/)
 {
     XnUInt32 epochTime = 0;
     xnOSGetEpochTime(&epochTime);
     printf("%d Lost user %d\n", epochTime, nId);	
 }
 // Callback: Detected a pose
-void XN_CALLBACK_TYPE UserPose_PoseDetected(xn::PoseDetectionCapability& /*capability*/, const XnChar* strPose, XnUserID nId, void* /*pCookie*/)
+void XN_CALLBACK_TYPE Lurn2SpielNub::UserPose_PoseDetected(xn::PoseDetectionCapability& /*capability*/, const XnChar* strPose, XnUserID nId, void* /*pCookie*/)
 {
     XnUInt32 epochTime = 0;
     xnOSGetEpochTime(&epochTime);
@@ -50,14 +55,14 @@ void XN_CALLBACK_TYPE UserPose_PoseDetected(xn::PoseDetectionCapability& /*capab
     g_UserGenerator.GetSkeletonCap().RequestCalibration(nId, TRUE);
 }
 // Callback: Started calibration
-void XN_CALLBACK_TYPE UserCalibration_CalibrationStart(xn::SkeletonCapability& /*capability*/, XnUserID nId, void* /*pCookie*/)
+void XN_CALLBACK_TYPE Lurn2SpielNub::UserCalibration_CalibrationStart(xn::SkeletonCapability& /*capability*/, XnUserID nId, void* /*pCookie*/)
 {
     XnUInt32 epochTime = 0;
     xnOSGetEpochTime(&epochTime);
     printf("%d Calibration started for user %d\n", epochTime, nId);
 }
 
-void XN_CALLBACK_TYPE UserCalibration_CalibrationComplete(xn::SkeletonCapability& /*capability*/, XnUserID nId, XnCalibrationStatus eStatus, void* /*pCookie*/)
+void XN_CALLBACK_TYPE Lurn2SpielNub::UserCalibration_CalibrationComplete(xn::SkeletonCapability& /*capability*/, XnUserID nId, XnCalibrationStatus eStatus, void* /*pCookie*/)
 {
     XnUInt32 epochTime = 0;
     xnOSGetEpochTime(&epochTime);
@@ -95,12 +100,26 @@ void XN_CALLBACK_TYPE UserCalibration_CalibrationComplete(xn::SkeletonCapability
     return nRetVal;						    \
 }
 
-void KinectInator::future_thread_func()
+void Lurn2SpielNub::FUNKMASTER_thread_func()
 {
+    XnUserID aUsers[MAX_NUM_USERS];
+    XnUInt16 nUsers;
+    XnSkeletonJointTransformation torsoJoint;
+
+    printf("KICK THE TIRES AND LIGHT THE FIRES\n");
+    //now print some annoying ascii art
+    printf("-----------------------------------------\n-------------------\n\\\\===\\\\   || //=\\\\\n \\\\   \\\\  ||//===\\\\\n //   //  ||\\\\\n//   //===|| \\\\===\n-------------------\n-----------------------------------------");
+    if(g_bNeedPose)
+    {        
+        printf("\n\n\n\nSTICK 'EM UP, SCUMBAG!\n");
+        printf("(Assume the \"Psi\" position to callibrate)");
+    }
     while (!needsToSeppuku)
     {
-        g_Context.WaitOneUpdateAll(g_UserGenerator);
-        // print the torso information for the first user already tracking
+        g_Context.WaitOneUpdateAll(g_UserGenerator);         //this blocks, so we want to abort if it returns after shutdown is called
+        if (needsToSeppuku) break;
+        
+        //call our callback function for whichever user we're currently tracking        
         nUsers=MAX_NUM_USERS;
         g_UserGenerator.GetUsers(aUsers, nUsers);
         for(XnUInt16 i=0; i<nUsers; i++)
@@ -109,121 +128,137 @@ void KinectInator::future_thread_func()
                 continue;
 
             g_UserGenerator.GetSkeletonCap().GetSkeletonJoint(aUsers[i],XN_SKEL_TORSO,torsoJoint);
-                printf("user %d: head at (%6.2f,%6.2f,%6.2f)\n",aUsers[i],
-                                                                torsoJoint.position.position.X,
-                                                                torsoJoint.position.position.Y,
-                                                                torsoJoint.position.position.Z);
+            
+            //TODO: ONLY SEND CALLBACK ONCE FOR CLOSEST USER IN LIST!!!
+
+            #ifdef EDBG
+            printhead(aUsers[i], torsoJoint.position.position.X, torsoJoint.position.position.Y, torsoJoint.position.position.Z);            
+            #endif            
+            _cb(aUsers[i], torsoJoint.position.position.X, torsoJoint.position.position.Y, torsoJoint.position.position.Z);
         }        
     }
 }
 
-KinectInator::Kinectinator() : needsToSeppuku(true),
-                               g_Context(xn::Context()),
-                               g_scriptNode(xn::ScriptNode()),
-                               g_DepthGenerator(xn::DepthGenerator()),
-                               g_UserGenerator(xn::UserGenerator())
-{
-    XnStatus nRetVal = XN_STATUS_OK;
-    xn::EnumerationErrors errors;
-
-    const char *fn = NULL;
-    if    (fileExists(SAMPLE_XML_PATH)) fn = SAMPLE_XML_PATH;
-    else if (fileExists(SAMPLE_XML_PATH_LOCAL)) fn = SAMPLE_XML_PATH_LOCAL;
-    else {
-        printf("Could not find '%s' nor '%s'. Aborting.\n" , SAMPLE_XML_PATH, SAMPLE_XML_PATH_LOCAL);
-        return XN_STATUS_ERROR;
-    }
-    printf("Reading config from: '%s'\n", fn);
-
-    nRetVal = g_Context.InitFromXmlFile(fn, g_scriptNode, &errors);
-    if (nRetVal == XN_STATUS_NO_NODE_PRESENT)
-    {
-        XnChar strError[1024];
-        errors.ToString(strError, 1024);
-        printf("%s\n", strError);
-        return (nRetVal);
-    }
-    else if (nRetVal != XN_STATUS_OK)
-    {
-        printf("Open failed: %s\n", xnGetStatusString(nRetVal));
-        return (nRetVal);
-    }
-
-    nRetVal = g_Context.FindExistingNode(XN_NODE_TYPE_DEPTH, g_DepthGenerator);
-    CHECK_RC(nRetVal,"No depth");
-
-    nRetVal = g_Context.FindExistingNode(XN_NODE_TYPE_USER, g_UserGenerator);
-    if (nRetVal != XN_STATUS_OK)
-    {
-        nRetVal = g_UserGenerator.Create(g_Context);
-        CHECK_RC(nRetVal, "Find user generator");
-    }
-
-    XnCallbackHandle hUserCallbacks, hCalibrationStart, hCalibrationComplete, hPoseDetected;
-    if (!g_UserGenerator.IsCapabilitySupported(XN_CAPABILITY_SKELETON))
-    {
-        printf("Supplied user generator doesn't support skeleton\n");
-        return 1;
-    }
-    nRetVal = g_UserGenerator.RegisterUserCallbacks(User_NewUser, User_LostUser, NULL, hUserCallbacks);
-    CHECK_RC(nRetVal, "Register to user callbacks");
-    nRetVal = g_UserGenerator.GetSkeletonCap().RegisterToCalibrationStart(UserCalibration_CalibrationStart, NULL, hCalibrationStart);
-    CHECK_RC(nRetVal, "Register to calibration start");
-    nRetVal = g_UserGenerator.GetSkeletonCap().RegisterToCalibrationComplete(UserCalibration_CalibrationComplete, NULL, hCalibrationComplete);
-    CHECK_RC(nRetVal, "Register to calibration complete");
-
-    if (g_UserGenerator.GetSkeletonCap().NeedPoseForCalibration())
-    {
-        g_bNeedPose = TRUE;
-        if (!g_UserGenerator.IsCapabilitySupported(XN_CAPABILITY_POSE_DETECTION))
-        {
-            printf("Pose required, but not supported\n");
-            return 1;
-        }
-        nRetVal = g_UserGenerator.GetPoseDetectionCap().RegisterToPoseDetected(UserPose_PoseDetected, NULL, hPoseDetected);
-        CHECK_RC(nRetVal, "Register to Pose Detected");
-        g_UserGenerator.GetSkeletonCap().GetCalibrationPose(g_strPose);
-    }
-
-    g_UserGenerator.GetSkeletonCap().SetSkeletonProfile(XN_SKEL_PROFILE_ALL);
-
-    nRetVal = g_Context.StartGeneratingAll();
-    CHECK_RC(nRetVal, "StartGenerating");
-
-    XnUserID aUsers[MAX_NUM_USERS];
-    XnUInt16 nUsers;
-    XnSkeletonJointTransformation torsoJoint;
-
-    printf("Starting to run\n");
-    if(g_bNeedPose)
-    {
-        printf("Assume calibration pose\n");
-    }
+Lurn2SpielNub::Lurn2SpielNub() : g_bNeedPose(false),
+                                 g_strPose({'\0'})
+{    
+    //prevent double-printing when instantiated with default constructor, and debug is enabled
+    #ifdef EDBG
+    _cb = &noop;
+    #else
+    _cb = &printhead;
+    #endif
 }
 
-KinectInator::~KinectInator()
+Lurn2SpielNub::Lurn2SpielNub(boost::function<void(int, double, double, double)> CB)  : g_bNeedPose(false),
+                                                                                       g_strPose({'\0'})
+{
+    _cb = CB;
+}
+
+Lurn2SpielNub::~Lurn2SpielNub()
 {
     Shutdown();
 }
 
-void KinectInator::Shutdown()
+void Lurn2SpielNub::Shutdown()
 {
-    g_scriptNode.Release();
-    g_DepthGenerator.Release();
-    g_UserGenerator.Release();
-    g_Context.Release();
+    needsToSeppuku = true;
 }
 
-void KinectInator::Start()
+int Lurn2SpielNub::Start()
 {
     if (needsToSeppuku)
     {
         needsToSeppuku = false;
-        //SPAWN A THREAD THAT RUNS THE THREAD FUNC, FEWL!
+        
+        XnStatus nRetVal = XN_STATUS_OK;
+        xn::EnumerationErrors errors;
+
+        const char *fn = NULL;
+        if    (fileExists(SAMPLE_XML_PATH)) fn = SAMPLE_XML_PATH;
+        else if (fileExists(SAMPLE_XML_PATH_LOCAL)) fn = SAMPLE_XML_PATH_LOCAL;
+        else {
+            printf("Could not find '%s' nor '%s'. Aborting.\n" , SAMPLE_XML_PATH, SAMPLE_XML_PATH_LOCAL);
+            return XN_STATUS_ERROR;
+        }
+        printf("Reading config from: '%s'\n", fn);
+
+        nRetVal = g_Context.InitFromXmlFile(fn, g_scriptNode, &errors);
+        if (nRetVal == XN_STATUS_NO_NODE_PRESENT)
+        {
+            XnChar strError[1024];
+            errors.ToString(strError, 1024);
+            printf("%s\n", strError);
+            return (nRetVal);
+        }
+        else if (nRetVal != XN_STATUS_OK)
+        {
+            printf("Open failed: %s\n", xnGetStatusString(nRetVal));
+            return (nRetVal);
+        }
+
+        nRetVal = g_Context.FindExistingNode(XN_NODE_TYPE_DEPTH, g_DepthGenerator);
+        CHECK_RC(nRetVal,"No depth");
+
+        nRetVal = g_Context.FindExistingNode(XN_NODE_TYPE_USER, g_UserGenerator);
+        if (nRetVal != XN_STATUS_OK)
+        {
+            nRetVal = g_UserGenerator.Create(g_Context);
+            CHECK_RC(nRetVal, "Find user generator");
+        }
+
+        XnCallbackHandle hUserCallbacks, hCalibrationStart, hCalibrationComplete, hPoseDetected;
+        if (!g_UserGenerator.IsCapabilitySupported(XN_CAPABILITY_SKELETON))
+        {
+            printf("Supplied user generator doesn't support skeleton\n");
+            return 1;
+        }
+        _new_user = boost::bind(&Lurn2SpielNub::User_NewUser, this, _1, _2, _3);
+        _lost_user = boost::bind(&Lurn2SpielNub::User_LostUser, this, _1, _2, _3);
+        _cal_start = boost::bind(&Lurn2SpielNub::UserCalibration_CalibrationStart, this, _1, _2, _3);
+        _cal_complete = boost::bind(&Lurn2SpielNub::UserCalibration_CalibrationComplete, this, _1, _2, _3, _4);
+        _pose = boost::bind(&Lurn2SpielNub::UserPose_PoseDetected, this, _1, _2, _3, _4);
+        
+        nRetVal = g_UserGenerator.RegisterUserCallbacks(&Lurn2SpielNub::new_user, &Lurn2SpielNub::lost_user, NULL, hUserCallbacks);
+        CHECK_RC(nRetVal, "Register to user callbacks");
+        nRetVal = g_UserGenerator.GetSkeletonCap().RegisterToCalibrationStart(&Lurn2SpielNub::cal_start, NULL, hCalibrationStart);
+        CHECK_RC(nRetVal, "Register to calibration start");
+        nRetVal = g_UserGenerator.GetSkeletonCap().RegisterToCalibrationComplete(&Lurn2SpielNub::cal_complete, NULL, hCalibrationComplete);
+        CHECK_RC(nRetVal, "Register to calibration complete");
+
+        if (g_UserGenerator.GetSkeletonCap().NeedPoseForCalibration())
+        {
+            g_bNeedPose = TRUE;
+            if (!g_UserGenerator.IsCapabilitySupported(XN_CAPABILITY_POSE_DETECTION))
+            {
+                printf("Pose required, but not supported\n");
+                return 1;
+            }
+            nRetVal = g_UserGenerator.GetPoseDetectionCap().RegisterToPoseDetected(&Lurn2SpielNub::pose, NULL, hPoseDetected);
+            CHECK_RC(nRetVal, "Register to Pose Detected");
+            g_UserGenerator.GetSkeletonCap().GetCalibrationPose(g_strPose);
+        }
+
+        g_UserGenerator.GetSkeletonCap().SetSkeletonProfile(XN_SKEL_PROFILE_ALL);
+
+        nRetVal = g_Context.StartGeneratingAll();
+        CHECK_RC(nRetVal, "StartGenerating");
+        
+        _thread = boost::thread(&Lurn2SpielNub::FUNKMASTER_thread_func, this);
     }
 }
 
-int main()
+void Lurn2SpielNub::new_user(xn::UserGenerator& a,  XnUserID b, void* c) { _new_user(a,b,c); }
+void Lurn2SpielNub::lost_user(xn::UserGenerator& a,  XnUserID b, void* c) { _lost_user(a,b,c); }
+void Lurn2SpielNub::pose(xn::PoseDetectionCapability& a, const XnChar* b, XnUserID c, void* d) { _pose(a,b,c,d); }
+void Lurn2SpielNub::cal_start(xn::SkeletonCapability& a, XnUserID b, void* c) { _cal_start(a,b,c); }
+void Lurn2SpielNub::cal_complete(xn::SkeletonCapability& a, XnUserID b, XnCalibrationStatus c, void* d) { _cal_complete(a,b,c,d); }
+
+void printhead(int user, double x, double y, double z)
 {
-    
+    printf("user %d: head at (%6.2f,%6.2f,%6.2f)\n",user,x,y,z);
+}
+void noop(int user, double x, double y, double z)
+{
 }
