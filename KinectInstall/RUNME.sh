@@ -9,8 +9,8 @@ getopenni()
     fi
     tar -xvf openni*.tar.bz2
     mv OpenNI*/ OpenNI
-    sudo rm ~/kinect/OpenNI -Rf 2> /dev/null
-    mv OpenNI ~/kinect/
+    sudo rm ../kinect/OpenNI -Rf 2> /dev/null
+    mv OpenNI ../kinect/
     rm openni*.tar.bz2
 }
 getnite()
@@ -22,17 +22,17 @@ getnite()
     fi
     tar -xvf nite*.tar.bz2
     mv NITE*/ NITE
-    sudo rm ~/kinect/NITE -Rf 2> /dev/null
-    mv NITE ~/kinect/
+    sudo rm ../kinect/NITE -Rf 2> /dev/null
+    mv NITE ../kinect/
     rm nite*.tar.bz2
 }
 getsensorkinect()
 {
     wget https://github.com/avin2/SensorKinect/zipball/unstable
     unzip unstable
-    sudo rm ~/kinect/sensorkinect -Rf 2> /dev/null
+    sudo rm ../kinect/sensorkinect -Rf 2> /dev/null
     mv avin* sensorkinect
-    mv -f sensorkinect ~/kinect/
+    mv -f sensorkinect ../kinect/
     rm unstable
 }
 getsensorxtion()
@@ -44,25 +44,25 @@ getsensorxtion()
     fi
     tar -xvf sensor-bin*.tar.bz2
     mv Sensor-Bin*/ sensorprimesense
-    sudo rm ~/kinect/sensorprimesense -Rf 2> /dev/null
-    mv sensorprimesense ~/kinect/
+    sudo rm ../kinect/sensorprimesense -Rf 2> /dev/null
+    mv sensorprimesense ../kinect/
     rm sensor-bin*.tar.bz2    
 }
 installopenni()
 {
-    cd ~/kinect/OpenNI
+    cd ../kinect/OpenNI
     chmod +x install.sh
     sudo ./install.sh
 }
 installnite()
 {
-    cd ~/kinect/NITE/
+    cd ../kinect/NITE/
     chmod a+x install.sh
     sudo ./install.sh
 }
 installsensorkinect()
 {
-    cd ~/kinect/sensorkinect/Platform/Linux/CreateRedist/
+    cd ../kinect/sensorkinect/Platform/Linux/CreateRedist/
     chmod a+x RedistMaker
     sudo ./RedistMaker
     if is64bit; then    
@@ -75,13 +75,13 @@ installsensorkinect()
 }
 installsensorxtion()
 {
-    cd ~/kinect/sensorprimesense/
+    cd ../kinect/sensorprimesense/
     chmod a+x install.sh
     sudo ./install.sh
 }
 #clean up shop from canceled previous installs
 rm -Rf OpenNI* openni* nite* NITE* sensor* 
-mkdir -p ~/kinect
+mkdir -p ../kinect
 getopenni
 getnite
 getsensorkinect
