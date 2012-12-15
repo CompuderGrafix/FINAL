@@ -20,8 +20,9 @@ XnBool fileExists(const char *fn)
 	return exists;
 }
 
-using namespace TiemSpelchk;
 
+namespace TiemSpelchk
+{
 // Callback: New user was detected
 void XN_CALLBACK_TYPE Lurn2SpielNub::User_NewUser(xn::UserGenerator& /*generator*/, XnUserID nId, void* /*pCookie*/)
 {
@@ -156,6 +157,12 @@ Lurn2SpielNub::Lurn2SpielNub(boost::function<void(int, double, double, double)> 
     _cb = CB;
 }
 
+void Lurn2SpielNub::new_user(xn::UserGenerator& a,  XnUserID b, void* c) { _new_user(a,b,c); }
+void Lurn2SpielNub::lost_user(xn::UserGenerator& a,  XnUserID b, void* c) { _lost_user(a,b,c); }
+void Lurn2SpielNub::pose(xn::PoseDetectionCapability& a, const XnChar* b, XnUserID c, void* d) { _pose(a,b,c,d); }
+void Lurn2SpielNub::cal_start(xn::SkeletonCapability& a, XnUserID b, void* c) { _cal_start(a,b,c); }
+void Lurn2SpielNub::cal_complete(xn::SkeletonCapability& a, XnUserID b, XnCalibrationStatus c, void* d) { _cal_complete(a,b,c,d); }
+
 Lurn2SpielNub::~Lurn2SpielNub()
 {
     Shutdown();
@@ -247,13 +254,9 @@ int Lurn2SpielNub::Start()
         
         _thread = boost::thread(&Lurn2SpielNub::FUNKMASTER_thread_func, this);
     }
+    return 0;
 }
-
-void Lurn2SpielNub::new_user(xn::UserGenerator& a,  XnUserID b, void* c) { _new_user(a,b,c); }
-void Lurn2SpielNub::lost_user(xn::UserGenerator& a,  XnUserID b, void* c) { _lost_user(a,b,c); }
-void Lurn2SpielNub::pose(xn::PoseDetectionCapability& a, const XnChar* b, XnUserID c, void* d) { _pose(a,b,c,d); }
-void Lurn2SpielNub::cal_start(xn::SkeletonCapability& a, XnUserID b, void* c) { _cal_start(a,b,c); }
-void Lurn2SpielNub::cal_complete(xn::SkeletonCapability& a, XnUserID b, XnCalibrationStatus c, void* d) { _cal_complete(a,b,c,d); }
+}
 
 void printhead(int user, double x, double y, double z)
 {

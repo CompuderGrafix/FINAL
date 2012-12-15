@@ -4,10 +4,10 @@
 #include <SOIL/SOIL.h>
 #include <string.h>
 
+#include "SpelchkCommon/KinectInator.h"
 #include "include/Angel.h"
 #include "SpelchkCommon/Camera.h"
 #include "SpelchkCommon/Model.h"
-#include "SpelchkCommon/KinectInator.h"
 #include "SpelchkCommon/SceneGraph.h"
 
 typedef Angel::vec4 color4;
