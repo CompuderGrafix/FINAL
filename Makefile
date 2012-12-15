@@ -7,16 +7,18 @@ TARGETS = $(basename $(SOURCES))
 INIT_SHADER = Common/InitShader.o
 INIT_MODEL =  SpelchkCommon/Model.o
 INIT_CAMERA = SpelchkCommon/Camera.o
-KINECT = SpelchkCommon/KinectInator.o
+#KINECT = SpelchkCommon/KinectInator.o
 INIT_SCENEGRAPH = SpelchkCommon/SceneGraph.o
 
 CXXOPTS = -O2 -g -Wall -fmessage-length=0 -msse3 
 CXXDEFS = -DFREEGLUT_STATIC -DGLEW_STATIC
-CXXINCS = -Iinclude -I~/kinect/OpenNI/Include -I/usr/include/ni
+#CXXINCS = -Iinclude -I~/kinect/OpenNI/Include -I/usr/include/ni
 
-CXXFLAGS = $(CXXOPTS) $(CXXDEFS) $(CXXINCS)
+CXXFLAGS = $(CXXOPTS) $(CXXDEFS) 
+#$(CXXINCS)
 
-LDLIBS = -L/usr/local/lib -lboost -lboost_threads -lboost_functions -lGLEW -lglut -lGL -lXmu -lX11 -lm -lSOIL -lOpenNI
+LDLIBS = -L/usr/local/lib -lGLEW -lglut -lGL -lXmu -lX11 -lm -lSOIL 
+#-lboost -lboost_threads -lboost_functions -lOpenNI
 
 LDFLAGS = $(LDOPTS) $(LDDIRS) $(LDLIBS)
 
@@ -28,7 +30,8 @@ DIRT = $(wildcard *.o *.i *~ */*~ *.log)
 
 default all: $(TARGETS)
 
-$(TARGETS): $(INIT_SHADER) $(INIT_CAMERA) $(INIT_MODEL) $(INIT_SCENEGRAPH) $(KINECT)
+$(TARGETS): $(INIT_SHADER) $(INIT_CAMERA) $(INIT_MODEL) $(INIT_SCENEGRAPH) 
+#$(KINECT)
 
 %: %.cpp
 	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@

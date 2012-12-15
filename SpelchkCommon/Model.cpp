@@ -307,14 +307,14 @@ void createTetrahedronModel(Model *model, int count) {
 void createCubeModel(Model *model) {
   // Vertices of a unit cube centered at origin, sides aligned with axes
   vec4 vertices[8] = {
-    vec4(-0.5, -0.5, 0.5, 1.0),   // 0 left bottom front
-    vec4(-0.5, 0.5, 0.5, 1.0),    // 1 left top front
-    vec4(0.5, 0.5, 0.5, 1.0),     // 2 right top front
-    vec4(0.5, -0.5, 0.5, 1.0),    // 3 right bottom front
+    vec4(-0.5, -0.5,  0.5, 1.0),   // 0 left bottom front
+    vec4(-0.5,  0.5,  0.5, 1.0),    // 1 left top front
+    vec4( 0.5,  0.5,  0.5, 1.0),     // 2 right top front
+    vec4( 0.5, -0.5,  0.5, 1.0),    // 3 right bottom front
     vec4(-0.5, -0.5, -0.5, 1.0),  // 4 left bottom back
-    vec4(-0.5, 0.5, -0.5, 1.0),   // 5 left top back
-    vec4(0.5, 0.5, -0.5, 1.0),    // 6 right top back
-    vec4(0.5, -0.5, -0.5, 1.0)    // 7 right bottom back
+    vec4(-0.5,  0.5, -0.5, 1.0),   // 5 left top back
+    vec4( 0.5,  0.5, -0.5, 1.0),    // 6 right top back
+    vec4( 0.5, -0.5, -0.5, 1.0)    // 7 right bottom back
   };
 
   arrangeBox(model, vertices);

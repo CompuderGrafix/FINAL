@@ -54,6 +54,7 @@ int screenHeight, screenWidth;
 bool debug = false;
 
 Camera camera(vec4(0.0, -2.0, -10.0, 0.0));
+//Camera camera(vec4(0.0, 0.0, 0.0, 0.0));
 
 //----------------------------------------------------------------------------
 
@@ -250,7 +251,7 @@ void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuin
 
   //Stick figure
   materialAmbient = vec4(0.0, 0.0, 0.0, 0.0);
-  materialDiffuse = vec4(0.8, 0.7, 0.5, 1.0);
+  materialDiffuse = vec4(0.5, 0.2, 0.1, 1.0);
   materialSpecular = vec4(0.0, 0.0, 0.0, 1.0);
   materialShininess = 0.0;
 
@@ -258,11 +259,6 @@ void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuin
   createLongStickModel(body);
   body->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
   body->upload();
-
-  materialAmbient = vec4(0.0, 0.0, 0.0, 0.0);
-  materialDiffuse = vec4(0.5, 0.2, 0.1, 1.0);
-  materialSpecular = vec4(0.0, 0.0, 0.0, 1.0);
-  materialShininess = 0.0;
 
   Model *appendage = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   createShortStickModel(appendage);
@@ -451,7 +447,6 @@ void display(void) {
   drawSceneGraph(sphereSceneGraph, Translate(2.0, 1.0, -2.0));
   drawSceneGraph(sphereSceneGraph, Translate(-2.0, 1.0, 2.0));
   drawSceneGraph(sphereSceneGraph, Translate(-2.0, 1.0, -2.0));
-
   glutSwapBuffers();
 }
 

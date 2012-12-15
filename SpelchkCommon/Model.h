@@ -8,7 +8,7 @@
 #ifndef MODEL_H_
 #define MODEL_H_
 
-#include "Angel.h"
+#include "../include/Angel.h"
 #include <vector>
 #include <SOIL/SOIL.h>
 
