@@ -10,6 +10,12 @@
 #include "SpelchkCommon/Model.h"
 #include "SpelchkCommon/SceneGraph.h"
 
+
+TiemSpelchk::Lurn2SpielNub virtualWindow;
+
+GLuint mainProgram;
+GLuint theFloorOnDrugs;
+
 typedef Angel::vec4 color4;
 typedef Angel::vec4 point4;
 
@@ -75,6 +81,7 @@ void keyboard(unsigned char key, int x, int y) {
     case 033: // Escape Key
     case 'q':
     case 'Q':
+      virtualWindow.Shutdown();
       exit(EXIT_SUCCESS);
       break;
     case 'w': // move up
@@ -229,10 +236,14 @@ void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuin
   vec4 materialSpecular(0.0, 0.0, 0.0, 1.0);
   float materialShininess = 0.0;
 
+  glUseProgram(theFloorOnDrugs);
+
   floorModel = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   createFloorModel(floorModel);
   floorModel->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
   floorModel->upload();
+
+  glUseProgram(mainProgram);
 
   Model *box1 = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   createCubeModel(box1);
@@ -464,41 +475,43 @@ void init(void) {
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
+  theFloorOnDrugs = InitShader("vFloor.glsl", "fFloor.glsl");
+
   // Load shaders and use the resulting shader program
-  GLuint program = InitShader("vShader.glsl", "fShader.glsl");
-  glUseProgram(program);
+  mainProgram = InitShader("vShader.glsl", "fShader.glsl");
+  glUseProgram(mainProgram);
 
   // set up vertex arrays
-  GLuint vPosition = glGetAttribLocation(program, "vPosition");
-  GLuint vNormal = glGetAttribLocation(program, "vNormal");
-  GLuint vTextureCoords = glGetAttribLocation(program, "vTextureCoords");
+  GLuint vPosition = glGetAttribLocation(mainProgram, "vPosition");
+  GLuint vNormal = glGetAttribLocation(mainProgram, "vNormal");
+  GLuint vTextureCoords = glGetAttribLocation(mainProgram, "vTextureCoords");
 
-  GLuint uTexture = glGetUniformLocation(program, "mytexture");
-  GLuint uUseTexture = glGetUniformLocation(program, "UseTexture");
+  GLuint uTexture = glGetUniformLocation(mainProgram, "mytexture");
+  GLuint uUseTexture = glGetUniformLocation(mainProgram, "UseTexture");
 
   // Initialize shader lighting parameters
   color4 lightAmbient(1.0, 1.0, 1.0, 1.0);
 
-  GLuint LightAmbient = glGetUniformLocation(program, "LightAmbient");
+  GLuint LightAmbient = glGetUniformLocation(mainProgram, "LightAmbient");
   glUniform4fv(LightAmbient, 1, lightAmbient);
 
-  GLuint LightPosition = glGetUniformLocation(program, "LightPosition");
+  GLuint LightPosition = glGetUniformLocation(mainProgram, "LightPosition");
   glUniform4fv(LightPosition, numberOfLights, lightPosition);
 
-  LightDiffuse = glGetUniformLocation(program, "LightDiffuse");
+  LightDiffuse = glGetUniformLocation(mainProgram, "LightDiffuse");
   glUniform4fv(LightDiffuse, numberOfLights, lightDiffuse);
 
-  GLuint LightSpecular = glGetUniformLocation(program, "LightSpecular");
+  GLuint LightSpecular = glGetUniformLocation(mainProgram, "LightSpecular");
   glUniform4fv(LightSpecular, numberOfLights, lightSpecular);
 
-  projection = glGetUniformLocation(program, "Projection");
-  modelView = glGetUniformLocation(program, "ModelView");
-  modelOrientation = glGetUniformLocation(program, "ModelOrientation");
+  projection = glGetUniformLocation(mainProgram, "Projection");
+  modelView = glGetUniformLocation(mainProgram, "ModelView");
+  modelOrientation = glGetUniformLocation(mainProgram, "ModelOrientation");
 
-  GLuint uMaterialAmbient = glGetUniformLocation(program, "MaterialAmbient");
-  GLuint uMaterialDiffuse = glGetUniformLocation(program, "MaterialDiffuse");
-  GLuint uMaterialSpecular = glGetUniformLocation(program, "MaterialSpecular");
-  GLuint uMaterialShininess = glGetUniformLocation(program, "MaterialShininess");
+  GLuint uMaterialAmbient = glGetUniformLocation(mainProgram, "MaterialAmbient");
+  GLuint uMaterialDiffuse = glGetUniformLocation(mainProgram, "MaterialDiffuse");
+  GLuint uMaterialSpecular = glGetUniformLocation(mainProgram, "MaterialSpecular");
+  GLuint uMaterialShininess = glGetUniformLocation(mainProgram, "MaterialShininess");
 
   createModels(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
 
@@ -507,8 +520,15 @@ void init(void) {
   glClearColor(0.1, 0.1, 0.1, 1.0);
 }
 
+void headPositionUpdated(int un, double x, double y, double z)
+{
+	printf("%d - (%f, %f, %f)\n", un,x,y,z);
+}
+
 int main(int argc, char **argv) {
   glutInit(&argc, argv);
+
+  virtualWindow.setCallback(&headPositionUpdated);
 
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE); // set rendering context
   glutInitWindowSize(512, 512);
@@ -524,7 +544,9 @@ int main(int argc, char **argv) {
   glutIdleFunc(idle);
   glutReshapeFunc(reshape);
 
+  virtualWindow.Start();
   glutMainLoop();
 
+  virtualWindow.Shutdown();
   return 0;
 }

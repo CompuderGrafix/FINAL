@@ -20,7 +20,6 @@ XnBool fileExists(const char *fn)
 	return exists;
 }
 
-
 namespace TiemSpelchk
 {
 // Callback: New user was detected
@@ -140,9 +139,10 @@ void Lurn2SpielNub::FUNKMASTER_thread_func()
     }
 }
 
-Lurn2SpielNub::Lurn2SpielNub() : g_bNeedPose(false),
-                                 g_strPose({'\0'})
+Lurn2SpielNub::Lurn2SpielNub()
 {    
+	g_bNeedPose = false;
+	needsToSeppuku = true;
     //prevent double-printing when instantiated with default constructor, and debug is enabled
     #ifdef EDBG
     _cb = &noop;
@@ -151,12 +151,16 @@ Lurn2SpielNub::Lurn2SpielNub() : g_bNeedPose(false),
     #endif
 }
 
-Lurn2SpielNub::Lurn2SpielNub(boost::function<void(int, double, double, double)> CB)  : g_bNeedPose(false),
-                                                                                       g_strPose({'\0'})
+void Lurn2SpielNub::setCallback(boost::function<void(int, double, double, double)> CB)
 {
     _cb = CB;
 }
 
+boost::function<void XN_CALLBACK_TYPE (xn::UserGenerator&,  XnUserID, void*)> _new_user;
+boost::function<void XN_CALLBACK_TYPE (xn::UserGenerator&,  XnUserID, void*)> _lost_user;
+boost::function<void XN_CALLBACK_TYPE (xn::PoseDetectionCapability&, const XnChar*, XnUserID, void*)> _pose;
+boost::function<void XN_CALLBACK_TYPE (xn::SkeletonCapability&, XnUserID, void*)> _cal_start;
+boost::function<void XN_CALLBACK_TYPE (xn::SkeletonCapability&, XnUserID, XnCalibrationStatus, void*)> _cal_complete;
 void Lurn2SpielNub::new_user(xn::UserGenerator& a,  XnUserID b, void* c) { _new_user(a,b,c); }
 void Lurn2SpielNub::lost_user(xn::UserGenerator& a,  XnUserID b, void* c) { _lost_user(a,b,c); }
 void Lurn2SpielNub::pose(xn::PoseDetectionCapability& a, const XnChar* b, XnUserID c, void* d) { _pose(a,b,c,d); }
