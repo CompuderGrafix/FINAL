@@ -89,6 +89,12 @@ void keyboard(unsigned char key, int x, int y) {
     case 'd': // move right
       camera.moveCamera(-0.2, 0.0, 0.0);
       break;
+    case 'z': //move back
+      camera.moveCamera(0.0,0.0,-0.2);
+      break;
+    case 'x': //move forward
+      camera.moveCamera(0.0,0.0,0.2);
+      break;
     case 'l': // move right
       if(light) {
         lightDiffuse[0] = 0.0;
