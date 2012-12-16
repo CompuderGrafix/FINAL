@@ -31,9 +31,10 @@
 // Includes
 //---------------------------------------------------------------------------
 #include <XnCppWrapper.h>
-#include <boost/thread.hpp>
+#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/function.hpp>
+#include <iostream>
 
 //---------------------------------------------------------------------------
 // Defines
@@ -65,6 +66,13 @@ class Lurn2SpielNub
         void XN_CALLBACK_TYPE UserPose_PoseDetected(xn::PoseDetectionCapability& /*capability*/, const XnChar* strPose, XnUserID nId, void* /*pCookie*/);
         void XN_CALLBACK_TYPE UserCalibration_CalibrationStart(xn::SkeletonCapability& /*capability*/, XnUserID nId, void* /*pCookie*/);
         void XN_CALLBACK_TYPE UserCalibration_CalibrationComplete(xn::SkeletonCapability& /*capability*/, XnUserID nId, XnCalibrationStatus eStatus, void* /*pCookie*/);
+
+    public:
+        int Start();
+        void Shutdown();
+        Lurn2SpielNub();
+        Lurn2SpielNub(boost::function<void(int,double,double,double)>);
+        ~Lurn2SpielNub();
         static boost::function<void XN_CALLBACK_TYPE (xn::UserGenerator&,  XnUserID, void*)> _new_user;
         static boost::function<void XN_CALLBACK_TYPE (xn::UserGenerator&,  XnUserID, void*)> _lost_user;
         static boost::function<void XN_CALLBACK_TYPE (xn::PoseDetectionCapability&, const XnChar*, XnUserID, void*)> _pose;
@@ -75,13 +83,6 @@ class Lurn2SpielNub
         static void XN_CALLBACK_TYPE pose(xn::PoseDetectionCapability&, const XnChar*, XnUserID, void*);
         static void XN_CALLBACK_TYPE cal_start(xn::SkeletonCapability&, XnUserID, void*);
         static void XN_CALLBACK_TYPE cal_complete(xn::SkeletonCapability&, XnUserID, XnCalibrationStatus, void*);
-        
-    public:
-        int Start();
-        void Shutdown();
-        Lurn2SpielNub();
-        Lurn2SpielNub(boost::function<void(int,double,double,double)>);
-        ~Lurn2SpielNub();
 };
 }
 

@@ -4,6 +4,7 @@
 #include <SOIL/SOIL.h>
 #include <string.h>
 
+#include "SpelchkCommon/KinectInator.h"
 #include "include/Angel.h"
 #include "SpelchkCommon/Camera.h"
 #include "SpelchkCommon/Model.h"
