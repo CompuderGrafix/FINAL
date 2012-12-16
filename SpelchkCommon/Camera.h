@@ -53,6 +53,8 @@ class Camera {
     void setProjection(int projectionType);
 
     void reset();
+
+    void headMovement(int usernum, double x, double y, double z);
 };
 
 #endif /* CAMERA_H_ */

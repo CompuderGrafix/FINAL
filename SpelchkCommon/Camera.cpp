@@ -100,3 +100,8 @@ void Camera::setScreenSize(int width, int height) {
 void Camera::setProjection(int _projectionType) {
   projectionType = _projectionType;
 }
+
+void Camera::headMovement(int usernum, double x, double y, double z)
+{
+
+}
