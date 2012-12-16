@@ -1,0 +1,6 @@
+#!/bin/bash
+pushd . >& /dev/null
+is64bit(){ if [ "`uname -a`" == 'x86_64' ]; then return 1; fi; return 0; }
+is64bit && cd kinect/OpenNI/Samples/Bin/x64-Release || cd kinect/OpenNI/Samples/Bin/x86-Release
+./Sample-NiUserTracker >& /dev/null &
+popd >& /dev/null

@@ -15,6 +15,9 @@ uniform mat4 Projection;
 uniform float MaterialShininess;
 uniform bool UseTexture;
 
+uniform bool modulate;
+uniform float time;
+
 void main() 
 { 
     // Transform vertex position into eye coordinates

@@ -11,10 +11,9 @@
 #include "SpelchkCommon/SceneGraph.h"
 
 
-TiemSpelchk::Lurn2SpielNub virtualWindow;
+TiemSpelchk:: Lurn2SpielNub virtualWindow;
 
-GLuint mainProgram;
-GLuint theFloorOnDrugs;
+GLuint program;
 
 typedef Angel::vec4 color4;
 typedef Angel::vec4 point4;
@@ -208,7 +207,7 @@ void loadTextures() {
   SOIL_free_image_data(image);
 }
 
-void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuint uTexture, GLuint uUseTexture, GLuint uMaterialAmbient, GLuint uMaterialDiffuse, GLuint uMaterialSpecular, GLuint uMaterialShininess) {
+void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuint uTexture, GLuint uUseTexture, GLuint uModulate, GLuint uMaterialAmbient, GLuint uMaterialDiffuse, GLuint uMaterialSpecular, GLuint uMaterialShininess) {
 
   SceneGraph *tempSceneGraph1;
   SceneGraph *tempSceneGraph2;
@@ -236,22 +235,19 @@ void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuin
   vec4 materialSpecular(0.0, 0.0, 0.0, 1.0);
   float materialShininess = 0.0;
 
-  glUseProgram(theFloorOnDrugs);
-
-  floorModel = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  floorModel = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uModulate, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   createFloorModel(floorModel);
   floorModel->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
+  floorModel->setModulationEnabled(true);
   floorModel->upload();
 
-  glUseProgram(mainProgram);
-
-  Model *box1 = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  Model *box1 = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uModulate, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   createCubeModel(box1);
   box1->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
   box1->setTexture(0, textureCoords);
   box1->upload();
 
-  Model *box2 = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  Model *box2 = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uModulate, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   createCubeModel(box2);
   box2->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
   box2->setTexture(1, textureCoords);
@@ -273,12 +269,12 @@ void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuin
   materialSpecular = vec4(0.0, 0.0, 0.0, 1.0);
   materialShininess = 0.0;
 
-  Model *body = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  Model *body = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uModulate, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   createLongStickModel(body);
   body->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
   body->upload();
 
-  Model *appendage = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  Model *appendage = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uModulate, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   createShortStickModel(appendage);
   appendage->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
   appendage->upload();
@@ -310,7 +306,7 @@ void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuin
   tempSceneGraph1->addSceneGraph(tempSceneGraph2);
 
   // head
-  Model *head = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  Model *head = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uModulate, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   head->load_obj("suzanne.obj");
   head->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
   head->upload();
@@ -332,7 +328,7 @@ void createModels(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords, GLuin
   materialSpecular = vec4(0.0, 0.0, 0.0, 1.0);
   materialShininess = 5.0;
 
-  Model *sphere = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  Model *sphere = new Model(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uModulate, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
   createTetrahedronModel(sphere, 7);
   //createCubeModel(sphere);
   sphere->setMaterial(materialAmbient, materialDiffuse, materialSpecular, materialShininess);
@@ -435,6 +431,8 @@ void display(void) {
   mat4 mo = Translate(0.0, 0.0, 0.0);
   glUniformMatrix4fv(modelOrientation, 1, GL_TRUE, mo);
 
+  floorModel->setModulationTime(elapsedTime);
+
   floorModel->draw();
 
   rotateBoxTower(elapsedTime);
@@ -475,45 +473,45 @@ void init(void) {
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
-  theFloorOnDrugs = InitShader("vFloor.glsl", "fFloor.glsl");
-
   // Load shaders and use the resulting shader program
-  mainProgram = InitShader("vShader.glsl", "fShader.glsl");
-  glUseProgram(mainProgram);
+  program = InitShader("vShader.glsl", "fShader.glsl");
+  glUseProgram(program);
 
   // set up vertex arrays
-  GLuint vPosition = glGetAttribLocation(mainProgram, "vPosition");
-  GLuint vNormal = glGetAttribLocation(mainProgram, "vNormal");
-  GLuint vTextureCoords = glGetAttribLocation(mainProgram, "vTextureCoords");
+  GLuint vPosition = glGetAttribLocation(program, "vPosition");
+  GLuint vNormal = glGetAttribLocation(program, "vNormal");
+  GLuint vTextureCoords = glGetAttribLocation(program, "vTextureCoords");
 
-  GLuint uTexture = glGetUniformLocation(mainProgram, "mytexture");
-  GLuint uUseTexture = glGetUniformLocation(mainProgram, "UseTexture");
+  GLuint uTexture = glGetUniformLocation(program, "mytexture");
+  GLuint uUseTexture = glGetUniformLocation(program, "UseTexture");
+
+  GLuint uModulate = glGetUniformLocation(program, "modulate");
 
   // Initialize shader lighting parameters
   color4 lightAmbient(1.0, 1.0, 1.0, 1.0);
 
-  GLuint LightAmbient = glGetUniformLocation(mainProgram, "LightAmbient");
+  GLuint LightAmbient = glGetUniformLocation(program, "LightAmbient");
   glUniform4fv(LightAmbient, 1, lightAmbient);
 
-  GLuint LightPosition = glGetUniformLocation(mainProgram, "LightPosition");
+  GLuint LightPosition = glGetUniformLocation(program, "LightPosition");
   glUniform4fv(LightPosition, numberOfLights, lightPosition);
 
-  LightDiffuse = glGetUniformLocation(mainProgram, "LightDiffuse");
+  LightDiffuse = glGetUniformLocation(program, "LightDiffuse");
   glUniform4fv(LightDiffuse, numberOfLights, lightDiffuse);
 
-  GLuint LightSpecular = glGetUniformLocation(mainProgram, "LightSpecular");
+  GLuint LightSpecular = glGetUniformLocation(program, "LightSpecular");
   glUniform4fv(LightSpecular, numberOfLights, lightSpecular);
 
-  projection = glGetUniformLocation(mainProgram, "Projection");
-  modelView = glGetUniformLocation(mainProgram, "ModelView");
-  modelOrientation = glGetUniformLocation(mainProgram, "ModelOrientation");
+  projection = glGetUniformLocation(program, "Projection");
+  modelView = glGetUniformLocation(program, "ModelView");
+  modelOrientation = glGetUniformLocation(program, "ModelOrientation");
 
-  GLuint uMaterialAmbient = glGetUniformLocation(mainProgram, "MaterialAmbient");
-  GLuint uMaterialDiffuse = glGetUniformLocation(mainProgram, "MaterialDiffuse");
-  GLuint uMaterialSpecular = glGetUniformLocation(mainProgram, "MaterialSpecular");
-  GLuint uMaterialShininess = glGetUniformLocation(mainProgram, "MaterialShininess");
+  GLuint uMaterialAmbient = glGetUniformLocation(program, "MaterialAmbient");
+  GLuint uMaterialDiffuse = glGetUniformLocation(program, "MaterialDiffuse");
+  GLuint uMaterialSpecular = glGetUniformLocation(program, "MaterialSpecular");
+  GLuint uMaterialShininess = glGetUniformLocation(program, "MaterialShininess");
 
-  createModels(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
+  createModels(vPosition, vNormal, vTextureCoords, uTexture, uUseTexture, uModulate, uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess);
 
   glShadeModel(GL_FLAT);
   glEnable(GL_DEPTH_TEST);

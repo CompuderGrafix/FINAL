@@ -5,7 +5,7 @@
 *  now it's abstracted in a class, and runs in parallel with the opengl mainloop
 **************************************************/
 
-#define EDBG
+//#define EDBG
 
 #include "KinectInator.h"
 

@@ -7,7 +7,7 @@
 #include "Model.h"
 
 Model::Model(GLuint _vPosition, GLuint _vNormal, GLuint _vTextureCoords,
-    GLuint _uTexture, GLuint _uUseTexture,
+    GLuint _uTexture, GLuint _uUseTexture, GLuint _uModulate,
     GLuint _uMaterialAmbient, GLuint _uMaterialDiffuse, GLuint _uMaterialSpecular, GLuint _uMaterialShininess) {
 
   vPosition = _vPosition;
@@ -30,6 +30,9 @@ Model::Model(GLuint _vPosition, GLuint _vNormal, GLuint _vTextureCoords,
 
   useTexture = false;
   textureId = 0;
+
+  modulate = false;
+  elapsedTime = 0;
 }
 
 Model::~Model() {
@@ -179,6 +182,10 @@ void Model::draw() {
   glUniform4fv(uMaterialSpecular, 1, materialSpecular);
   glUniform1f(uMaterialShininess, materialShininess);
   glUniform1f(uUseTexture, useTexture);
+  glUniform1f(uModulate, modulate);
+  glUniform1f(utime, elapsedTime);
+  if (modulate)
+	  printf("%f\n", elapsedTime);
 
   if (iboElements != 0) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboElements);
@@ -195,6 +202,15 @@ void Model::draw() {
     glDisableVertexAttribArray(vNormal);
   if (vboTextureCoords != 0)
     glDisableVertexAttribArray(vTextureCoords);
+}
+
+void Model::setModulationEnabled(bool b)
+{
+	modulate = b;
+}
+void Model::setModulationTime(float t)
+{
+	elapsedTime = t;
 }
 
 void Model::load_obj(const char* filename) {
@@ -327,7 +343,7 @@ void createFloorModel(Model *model) {
       vec4(30.0, 0.0, 30.0, 1.0),
       vec4(30.0, 0.0, -30.0, 1.0)
   };
-
+  model->setModulationEnabled(true);
   model->addPoint(floorPoints[0]);
   model->addPoint(floorPoints[1]);
   model->addPoint(floorPoints[2]);
