@@ -16,15 +16,17 @@ uniform bool modulate;
 uniform float time;
 
 float PI = 4.0 * acos(1.0/sqrt(2.0));
-float magnitude = 1.0;
-float period = 10.0;
+float magnitude = 0.1;
+float period = 2.0;
 
 void main() 
 {	
 	vec4 vModulated = (vPosition).xyzw; 
 	if (modulate)
-	{
-		vModulated.z = vModulated.x;
+	{		
+		float theta1 = PI * (time / 1000.0 + 2*vPosition.x / period);
+		float theta2 = PI * (time / 1000.0 + 2*vPosition.z / period);
+		vModulated.y = vModulated.y + magnitude * sin(theta1) + magnitude * cos(theta2);
 	}
     gl_Position = Projection * ModelView * ModelOrientation * vModulated;
     fPosition = ModelView * ModelOrientation * vModulated;

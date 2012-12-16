@@ -7,7 +7,7 @@
 #include "Model.h"
 
 Model::Model(GLuint _vPosition, GLuint _vNormal, GLuint _vTextureCoords,
-    GLuint _uTexture, GLuint _uUseTexture, GLuint _uModulate,
+    GLuint _uTexture, GLuint _uUseTexture, GLuint _uModulate, GLuint _uTime,
     GLuint _uMaterialAmbient, GLuint _uMaterialDiffuse, GLuint _uMaterialSpecular, GLuint _uMaterialShininess) {
 
   vPosition = _vPosition;
@@ -16,6 +16,9 @@ Model::Model(GLuint _vPosition, GLuint _vNormal, GLuint _vTextureCoords,
 
   uTexture = _uTexture;
   uUseTexture = _uUseTexture;
+
+  uModulate = _uModulate;
+  utime = _uTime;
 
   uMaterialAmbient = _uMaterialAmbient;
   uMaterialDiffuse = _uMaterialDiffuse;
@@ -184,8 +187,6 @@ void Model::draw() {
   glUniform1f(uUseTexture, useTexture);
   glUniform1f(uModulate, modulate);
   glUniform1f(utime, elapsedTime);
-  if (modulate)
-	  printf("%f\n", elapsedTime);
 
   if (iboElements != 0) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboElements);
@@ -204,13 +205,10 @@ void Model::draw() {
     glDisableVertexAttribArray(vTextureCoords);
 }
 
-void Model::setModulationEnabled(bool b)
-{
-	modulate = b;
-}
 void Model::setModulationTime(float t)
 {
 	elapsedTime = t;
+	modulate = true;
 }
 
 void Model::load_obj(const char* filename) {
@@ -337,20 +335,29 @@ void createCubeModel(Model *model) {
 }
 
 void createFloorModel(Model *model) {
+  float vertexesperside = 300;
+  float min = -10.0;
+  float max = 10.0;
   vec4 floorPoints[4] = {
-      vec4(-30.0, 0.0, -30.0, 1.0),
-      vec4(-30.0, 0.0, 30.0, 1.0),
-      vec4(30.0, 0.0, 30.0, 1.0),
-      vec4(30.0, 0.0, -30.0, 1.0)
+      vec4(0.0, 0.0, 0.0, 1.0),
+      vec4(0.0, 0.0, (max-min)/vertexesperside, 1.0),
+      vec4((max-min)/vertexesperside, 0.0, (max-min)/vertexesperside, 1.0),
+      vec4((max-min)/vertexesperside, 0.0, 0.0, 1.0)
   };
-  model->setModulationEnabled(true);
-  model->addPoint(floorPoints[0]);
-  model->addPoint(floorPoints[1]);
-  model->addPoint(floorPoints[2]);
-  model->addPoint(floorPoints[0]);
-  model->addPoint(floorPoints[2]);
-  model->addPoint(floorPoints[3]);
+  vec4 v;
+  for(int y=0;y<vertexesperside;y++)
+	  for(int x=0;x<vertexesperside;x++)
+	  {
+		  v = vec4((max-min)*(x-vertexesperside/2)/vertexesperside, 0.0, (max-min)*(y-vertexesperside/2)/vertexesperside, 0.0);
+		  model->addPoint(floorPoints[0]+v);
+		  model->addPoint(floorPoints[1]+v);
+		  model->addPoint(floorPoints[2]+v);
+		  model->addPoint(floorPoints[0]+v);
+		  model->addPoint(floorPoints[2]+v);
+		  model->addPoint(floorPoints[3]+v);
+	  }
   model->calculateNormals();
+  model->setModulationTime(0);
 }
 
 void createLongStickModel(Model *model) {

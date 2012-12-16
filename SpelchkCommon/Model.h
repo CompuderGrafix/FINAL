@@ -40,7 +40,7 @@ class Model {
 
   public:
     Model(GLuint vPosition, GLuint vNormal, GLuint vTextureCoords,
-        GLuint uTexture, GLuint uUseTexture, GLuint uModulate,
+        GLuint uTexture, GLuint uUseTexture, GLuint uModulate, GLuint uTime,
         GLuint uMaterialAmbient, GLuint uMaterialDiffuse, GLuint uMaterialSpecular, GLuint uMaterialShininess);
     virtual ~Model();
 
@@ -53,7 +53,6 @@ class Model {
     void setMaterial(vec4 materialAmbient, vec4 materialDiffuse, vec4 materialSpecular, float materialShininess);
     void setTexture(GLint textureId, std::vector<GLfloat> textureCoords);
     void setModulationTime(float t);
-    void setModulationEnabled(bool b);
 
     void upload();
     void draw();
