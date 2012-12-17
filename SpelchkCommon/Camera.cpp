@@ -8,6 +8,7 @@
 #include "Camera.h"
 
 Camera::Camera(vec4 _initialTranslationVector) {
+  timeRef = 0;
   initialTranslationVector = _initialTranslationVector;
   reset();
 }
@@ -99,6 +100,18 @@ void Camera::setScreenSize(int width, int height) {
 
 void Camera::setProjection(int _projectionType) {
   projectionType = _projectionType;
+}
+
+void Camera::setLightMovementRef(GLuint ref)
+{
+	timeRef = ref;
+
+}
+
+void Camera::setLightMovementTime(float elapsed)
+{
+	if (timeRef != 0)
+	  glUniform1f(timeRef, elapsed);
 }
 
 void Camera::headMovement(int usernum, double x, double y, double z)

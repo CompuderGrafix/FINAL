@@ -22,6 +22,8 @@ class Camera {
     GLfloat bottom, top;
     GLfloat zNear, zFar;
 
+    GLuint timeRef;
+
     int screenWidth, screenHeight;
 
     GLfloat xDepth, yDepth, zDepth;
@@ -53,6 +55,9 @@ class Camera {
     void setProjection(int projectionType);
 
     void reset();
+
+    void setLightMovementRef(GLuint ref);
+    void setLightMovementTime(float elapsed);
 
     void headMovement(int usernum, double x, double y, double z);
 };

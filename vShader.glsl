@@ -15,18 +15,20 @@ out vec2 fTexcoord;
 uniform bool modulate;
 uniform float time;
 
-float PI = 4.0 * acos(1.0/sqrt(2.0));
-float magnitude = 0.1;
-float period = 2.0;
+float PI = 4.0 * atan(1.0);
+float magnitude1 = 0.1;
+float magnitude2 = 0.2;
+float period1 = 0.5;
+float period2 = 1.0;
 
 void main() 
 {	
 	vec4 vModulated = (vPosition).xyzw; 
 	if (modulate)
 	{		
-		float theta1 = PI * (time / 1000.0 + 2*vPosition.x / period);
-		float theta2 = PI * (time / 1000.0 + 2*vPosition.z / period);
-		vModulated.y = vModulated.y + magnitude * sin(theta1) + magnitude * cos(theta2);
+		float theta1 = PI * (time / 1000.0 + vPosition.x / period1);
+		float theta2 = PI * (time / 1000.0 + vPosition.z / period2);
+		vModulated.y = vModulated.y + magnitude1 * sin(theta1) + magnitude2 * cos(theta2);
 	}
     gl_Position = Projection * ModelView * ModelOrientation * vModulated;
     fPosition = ModelView * ModelOrientation * vModulated;

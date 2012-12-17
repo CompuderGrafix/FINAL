@@ -33,10 +33,10 @@ int numberOfLights = 5;
 GLuint LightDiffuse;
 GLfloat lightPosition[] = {
     0.0, 0.0, 1.0, 1.0,
-    -6.93, 3.0, 4.0, 1.0,
-    0.0, 3.0, -8.0, 1.0,
-    6.93, 3.0, 4.0, 1.0,
-    0.0, 5.0, 0.0, 1.0
+    -5.65, 3.0, 5.65, 1.0,
+    -5.65, 3.0, -5.65, 1.0,
+    5.65, 3.0, -5.65, 1.0,
+    5.65, 3.0, 5.65, 1.0
 };
 
 GLfloat lightDiffuse[] = {
@@ -44,7 +44,7 @@ GLfloat lightDiffuse[] = {
     1.0, 0.0, 0.0, 1.0,
     0.0, 1.0, 0.0, 1.0,
     0.0, 0.0, 1.0, 1.0,
-    1.0, 1.0, 1.0, 1.0
+    1.0, 1.0, 0.0, 1.0
 };
 
 GLfloat lightSpecular[] = {
@@ -422,6 +422,8 @@ void display(void) {
 
   float elapsedTime = glutGet(GLUT_ELAPSED_TIME);
 
+  camera.setLightMovementTime(elapsedTime);
+
   mat4 p = camera.getProjectionMatrix();
   glUniformMatrix4fv(projection, 1, GL_TRUE, p);
 
@@ -487,6 +489,10 @@ void init(void) {
 
   GLuint uModulate = glGetUniformLocation(program, "modulate");
   GLuint utime = glGetUniformLocation(program, "time");
+
+  //time for rotation of lights in fragment shader
+  GLuint ftime = glGetUniformLocation(program, "fTime");
+  camera.setLightMovementRef(ftime);
 
   // Initialize shader lighting parameters
   color4 lightAmbient(1.0, 1.0, 1.0, 1.0);

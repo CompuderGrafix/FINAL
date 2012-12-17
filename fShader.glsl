@@ -14,9 +14,27 @@ uniform mat4 ModelView;
 uniform mat4 Projection;
 uniform float MaterialShininess;
 uniform bool UseTexture;
+uniform float fTime;
+
+float PI = 4.0 * atan(1.0);
 
 void main() 
 { 
+	float theta = PI * fTime / 1000.0;
+	
+	//spin lights not bound to camera around world Y... reverse directions on lights w/ index == 1%2
+	mat4 spinInSky[2];
+	spinInSky[0] = mat4(vec4(cos(theta), 0.0, -sin(theta), 0.0),	//column1
+							 vec4(0.0,1.0,0.0,0.0),						//column2
+							 vec4(sin(theta), 0.0, cos(theta), 0.0),	//column3
+							 vec4(0.0,0.0,0.0,1.0));					//column4
+	spinInSky[1] = mat4(vec4(cos(-theta/3.0), 0.0, -sin(-theta/3.0), 0.0),	//column1
+							 vec4(0.0,1.0,0.0,0.0),						//column2
+							 vec4(sin(-theta/3.0), 0.0, cos(-theta/3.0), 0.0),	//column3
+							 vec4(0.0,0.0,0.0,1.0));					//column4
+						 
+						 
+
     // Transform vertex position into eye coordinates
     vec3 pos = (fPosition).xyz;
 
@@ -38,9 +56,9 @@ void main()
 	
 		vec3 lightPos;
 		if(index >= numberOfLightsFollowingCamera) {
-			lightPos = (ModelView * LightPosition[index]).xyz;
+			lightPos = (ModelView * spinInSky[index%2] * LightPosition[index]).xyz;
 		} else {
-			lightPos = LightPosition[index].xyz;
+			lightPos = (LightPosition[index]).xyz;
 		}
 		
 	    vec3 L = normalize(lightPos - pos);
