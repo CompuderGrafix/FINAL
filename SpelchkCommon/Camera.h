@@ -28,12 +28,18 @@ class Camera {
 
     GLfloat xDepth, yDepth, zDepth;
     GLfloat xAngle, yAngle, zAngle;
+    GLfloat xHead, yHead, zHead;
+    float xHeadStart, yHeadStart, zHeadStart;
+	GLfloat xHeadAngle, yHeadAngle, zHeadAngle;
 
     vec4 initialTranslationVector;
     vec4 translationVector;
     vec4 oldTranslationVector;
 
     mat4 modelViewMatrix;
+
+    int inboundHeadData;
+    vec4 initialHeadPosition;
 
     void calculateTranslationVector();
 
@@ -59,6 +65,7 @@ class Camera {
     void setLightMovementRef(GLuint ref);
     void setLightMovementTime(float elapsed);
 
+    void getReadyForZero(int usernum);
     void headMovement(int usernum, double x, double y, double z);
 };
 

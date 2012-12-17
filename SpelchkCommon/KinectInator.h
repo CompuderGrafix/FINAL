@@ -35,6 +35,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/function.hpp>
 #include <iostream>
+#include <cfloat>
 
 //---------------------------------------------------------------------------
 // Defines
@@ -48,7 +49,7 @@ namespace TiemSpelchk
 class Lurn2SpielNub
 {
     private:
-        boost::function<void(int,double,double,double)> _cb;        
+        boost::function<void(int,double,double,double)> _cb;
         boost::thread _thread;
         void FUNKMASTER_thread_func();
         bool needsToSeppuku;
@@ -67,7 +68,7 @@ class Lurn2SpielNub
         void XN_CALLBACK_TYPE UserCalibration_CalibrationStart(xn::SkeletonCapability& /*capability*/, XnUserID nId, void* /*pCookie*/);
         void XN_CALLBACK_TYPE UserCalibration_CalibrationComplete(xn::SkeletonCapability& /*capability*/, XnUserID nId, XnCalibrationStatus eStatus, void* /*pCookie*/);
     public:
-        void setCallback(boost::function<void(int,double,double,double)> cb);
+        void setCallback(boost::function<void(int,double,double,double)> headCB);
         int Start();
         void Shutdown();
         Lurn2SpielNub();
@@ -82,6 +83,7 @@ class Lurn2SpielNub
 
 void printhead(int,double,double,double);
 void noop(int, double, double, double);
+void noopint(int);
 
 
 #endif

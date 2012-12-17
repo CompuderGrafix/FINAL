@@ -122,6 +122,8 @@ void Lurn2SpielNub::FUNKMASTER_thread_func()
         //call our callback function for whichever user we're currently tracking        
         nUsers=MAX_NUM_USERS;
         g_UserGenerator.GetUsers(aUsers, nUsers);
+        float minz = FLT_MAX, x, y;
+        int u = -1;
         for(XnUInt16 i=0; i<nUsers; i++)
         {
             if(g_UserGenerator.GetSkeletonCap().IsTracking(aUsers[i])==FALSE)
@@ -133,9 +135,17 @@ void Lurn2SpielNub::FUNKMASTER_thread_func()
 
             #ifdef EDBG
             printhead(aUsers[i], torsoJoint.position.position.X, torsoJoint.position.position.Y, torsoJoint.position.position.Z);            
-            #endif            
-            _cb(aUsers[i], torsoJoint.position.position.X, torsoJoint.position.position.Y, torsoJoint.position.position.Z);
-        }        
+            #endif
+            if (torsoJoint.position.position.Z < minz)
+            {
+            	x = torsoJoint.position.position.X;
+            	y = torsoJoint.position.position.Y;
+            	minz = torsoJoint.position.position.Z;
+            	u = aUsers[i];
+            }
+        }
+        if (u != -1)
+        	_cb(u,x,y,minz);
     }
 }
 
@@ -143,6 +153,7 @@ Lurn2SpielNub::Lurn2SpielNub()
 {    
 	g_bNeedPose = false;
 	needsToSeppuku = true;
+	currenthead = -1;
     //prevent double-printing when instantiated with default constructor, and debug is enabled
     #ifdef EDBG
     _cb = &noop;
@@ -155,6 +166,7 @@ void Lurn2SpielNub::setCallback(boost::function<void(int, double, double, double
 {
     _cb = CB;
 }
+
 
 boost::function<void XN_CALLBACK_TYPE (xn::UserGenerator&,  XnUserID, void*)> _new_user;
 boost::function<void XN_CALLBACK_TYPE (xn::UserGenerator&,  XnUserID, void*)> _lost_user;

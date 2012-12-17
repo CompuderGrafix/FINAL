@@ -527,7 +527,7 @@ void init(void) {
 
 void headPositionUpdated(int un, double x, double y, double z)
 {
-	printf("%d - (%f, %f, %f)\n", un,x,y,z);
+	camera.headMovement(un,x,y,z);
 }
 
 int main(int argc, char **argv) {

@@ -35,6 +35,14 @@ void Camera::reset() {
   yAngle = 0.0;
   zAngle = 0.0;
 
+  xHead = 0.0;
+  yHead = 0.0;
+  zHead = 0.0;
+
+  xHeadAngle = 0.0;
+  yHeadAngle = 0.0;
+  zHeadAngle = 0.0;
+
   oldTranslationVector = initialTranslationVector;
   translationVector = oldTranslationVector;
   calculateTranslationVector();
@@ -52,7 +60,7 @@ mat4 Camera::getProjectionMatrix() {
 }
 
 mat4 Camera::getModelViewMatrix() {
-  modelViewMatrix = RotateX(xAngle) * RotateY(yAngle) * RotateZ(zAngle) * Translate(translationVector);
+  modelViewMatrix = RotateX(xAngle) * RotateY(yAngle) * RotateZ(zAngle) * * RotateX(xHeadAngle) * RotateY(yHeadAngle) * Translate(translationVector) * RotateX(-xHeadAngle) * RotateY(-yHeadAngle);
   return modelViewMatrix;
 }
 
@@ -62,8 +70,9 @@ vec4 Camera::getTranslationVector() {
 
 void Camera::calculateTranslationVector() {
   // calculate displacement based on current angles (note rotations done in reverse order and negative to move model in opposite direction)
-  vec4 calculateDisplacement = RotateZ(-zAngle) * RotateY(-yAngle) * RotateX(-xAngle) * vec4(xDepth, yDepth, -zDepth, 0.0);
-  translationVector = oldTranslationVector + calculateDisplacement;
+
+  vec4 calculateDisplacement =  RotateZ(-zAngle) * RotateY(-yAngle) * RotateX(-xAngle) * vec4(xDepth, yDepth, -zDepth, 0.0);
+  translationVector = (oldTranslationVector + calculateDisplacement);
 }
 
 void Camera::moveCamera(float _xDepth, float _yDepth, float _zDepth) {
@@ -113,8 +122,34 @@ void Camera::setLightMovementTime(float elapsed)
 	if (timeRef != 0)
 	  glUniform1f(timeRef, elapsed);
 }
-
 void Camera::headMovement(int usernum, double x, double y, double z)
 {
+	//mm to meters and cast to float
 
+	calculateTranslationVector();
+	getModelViewMatrix();
+
+	vec4 originCentric = modelViewMatrix * vec4(x/1000.0,y/1000.0,z/1000.0,1.0);
+	if (originCentric.z != 0)
+	{
+		float ysin = originCentric.x/originCentric.z;
+		float xcos = originCentric.y/originCentric.z;
+		if (ysin > 1)
+			ysin = 1;
+		else if (ysin < -1)
+			ysin = -1;
+		if (xcos > 1)
+			xcos = 1;
+		else if (xcos < -1)
+			xcos = -1;
+		yHeadAngle = -atan(ysin);
+		xHeadAngle = -atan(xcos);
+	}
+
+	moveCamera(xHead-(float)(x/1000.0), yHead -(float)(y/1000.0), zHead +(float)(z/1000.0));
+	xHead = (float)(x/1000.0);
+	yHead = (float)(y/1000.0);
+	zHead = -(float)(z/1000.0);
+
+	printf("%d - (%6.2f, %6.2f, %6.2f) ==> (%6.2f,%6.2f,%6.2f), yaw=%f, pitch=%f\n", usernum,x,y,z,xHead, yHead, zHead, xHeadAngle, yHeadAngle);
 }
