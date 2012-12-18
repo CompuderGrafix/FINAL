@@ -153,7 +153,7 @@ Lurn2SpielNub::Lurn2SpielNub()
 {    
 	g_bNeedPose = false;
 	needsToSeppuku = true;
-	currenthead = -1;
+	//currenthead = -1;
     //prevent double-printing when instantiated with default constructor, and debug is enabled
     #ifdef EDBG
     _cb = &noop;
