@@ -60,7 +60,7 @@ mat4 Camera::getProjectionMatrix() {
 }
 
 mat4 Camera::getModelViewMatrix() {
-  modelViewMatrix = RotateX(xAngle) * RotateY(yAngle) * RotateZ(zAngle) * * RotateX(xHeadAngle) * RotateY(yHeadAngle) * Translate(translationVector) * RotateX(-xHeadAngle) * RotateY(-yHeadAngle);
+  modelViewMatrix = RotateX(xAngle) * RotateY(yAngle) * RotateZ(zAngle) * RotateX(xHeadAngle) * RotateY(yHeadAngle) * Translate(translationVector) * RotateX(-xHeadAngle) * RotateY(-yHeadAngle);
   return modelViewMatrix;
 }
 
@@ -129,7 +129,7 @@ void Camera::headMovement(int usernum, double x, double y, double z)
 	calculateTranslationVector();
 	getModelViewMatrix();
 
-	vec4 originCentric = modelViewMatrix * vec4(x/1000.0,y/1000.0,z/1000.0,1.0);
+	vec4 originCentric = modelViewMatrix * vec4(x/250.0,y/250.0,z/250.0,1.0);
 	if (originCentric.z != 0)
 	{
 		float ysin = originCentric.x/originCentric.z;
@@ -146,10 +146,10 @@ void Camera::headMovement(int usernum, double x, double y, double z)
 		xHeadAngle = -atan(xcos);
 	}
 
-	moveCamera(xHead-(float)(x/1000.0), yHead -(float)(y/1000.0), zHead +(float)(z/1000.0));
-	xHead = (float)(x/1000.0);
-	yHead = (float)(y/1000.0);
-	zHead = -(float)(z/1000.0);
+	moveCamera(xHead-(float)(x/250.0), yHead -(float)(y/250.0), zHead +(float)(z/250.0));
+	xHead = (float)(x/250.0);
+	yHead = (float)(y/250.0);
+	zHead = -(float)(z/250.0);
 
-	printf("%d - (%6.2f, %6.2f, %6.2f) ==> (%6.2f,%6.2f,%6.2f), yaw=%f, pitch=%f\n", usernum,x,y,z,xHead, yHead, zHead, xHeadAngle, yHeadAngle);
+//	printf("%d - (%6.2f, %6.2f, %6.2f) ==> (%6.2f,%6.2f,%6.2f), yaw=%f, pitch=%f\n", usernum,x,y,z,xHead, yHead, zHead, xHeadAngle, yHeadAngle);
 }
